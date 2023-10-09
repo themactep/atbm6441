@@ -186,21 +186,8 @@ ifeq ($(sys),Android)
 KERDIR:=/wifi_prj/staff/zhouzhanchao/android4_4_SIN/Source/lichee/linux-3.3
 CROSS_COMPILE:=/wifi_prj/staff/zhouzhanchao/android4_4_SIN/Source/lichee/brandy/gcc-linaro/bin/arm-linux-gnueabi-
 else
-<<<<<<< .mine
-KERDIR:=/usr/lchome/yuzhihuang/allWinner/BJ_A31/linux-3.3
-||||||| .r2069
-KERDIR:=/wifi_prj/staff/zhouzhanchao/Linux_sun6i/lichee/linux-3.3/
-=======
 KERDIR:=/wifi_prj/staff/wangzhiguang/Linux_sun6i/lichee/linux-3.3/
->>>>>>> .r2115
-#KERDIR:=/wifi_prj/staff/panxuqiang/wifi_prj/branch/linux_sun6i/
-<<<<<<< .mine
-CROSS_COMPILE:=/usr/lchome/yuzhihuang/allWinner/BJ_A31/tools/toolschain/gcc-linaro/bin/arm-linux-gnueabi-
-||||||| .r2069
-CROSS_COMPILE:=/wifi_prj/staff/zhouzhanchao/Linux_sun6i/lichee/buildroot/output/external-toolchain/bin/arm-linux-gnueabi-
-=======
 CROSS_COMPILE:=/wifi_prj/staff/wangzhiguang/Linux_sun6i/lichee/buildroot/output/external-toolchain/bin/arm-linux-gnueabi-
->>>>>>> .r2115
 endif
 export
 ATBM_WIFI__EXT_CCFLAGS = -DATBM_WIFI_PLATFORM=2
