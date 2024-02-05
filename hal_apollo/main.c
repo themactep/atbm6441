@@ -309,12 +309,12 @@ struct atbm_common *atbm_init_common(size_t hw_priv_data_len)
 	hw_priv->extra_tx_headroom = WSM_TX_EXTRA_HEADROOM + 64 +
 		8  /* TKIP IV */ +
 		12 /* TKIP ICV and MIC */;
-	hw_priv->workqueue = create_singlethread_workqueue("atbm_wq");	
+	hw_priv->workqueue = create_singlethread_workqueue("atbm_wq");
 	init_waitqueue_head(&hw_priv->wsm_cmd_wq);
 	spin_lock_init(&hw_priv->event_queue_lock);
 	INIT_LIST_HEAD(&hw_priv->event_queue);
 	INIT_WORK(&hw_priv->event_handler, atbm_event_handler);
-		
+
 	mutex_init(&hw_priv->wsm_cmd_mux);
 	mutex_init(&hw_priv->conf_mutex);
 #ifndef OPER_CLOCK_USE_SEM
@@ -333,11 +333,11 @@ struct atbm_common *atbm_init_common(size_t hw_priv_data_len)
 #ifdef CONFIG_ATBM_SDIO_ATCMD
 	atbm_sdio_atcmd_buf_init(hw_priv);
 #endif
-	
+
 	atbm_skb_queue_head_init(&hw_priv->rx_frame_queue);
 	atbm_skb_queue_head_init(&hw_priv->tx_frame_queue);
 	atbm_skb_queue_head_init(&hw_priv->rx_skb_queue);
-	
+
 #ifndef CONFIG_ATBM_SDIO_ATCMD
 	spin_lock_init(&hw_priv->rx_path_lock);
 	sta_info_init(hw_priv);
@@ -365,7 +365,7 @@ void atbm_free_common( struct atbm_common  *dev)
 				"control register.\n", __func__);
 			goto out;
 		}
-		
+
 		ret = atbm_reg_write_16(dev, ATBM_HIFREG_CONTROL_REG_ID, val16 & ~ATBM_HIFREG_CONT_WUP_BIT);
 		if (ret < 0) {
 			atbm_dbg(ATBM_APOLLO_DBG_ERROR,
@@ -392,7 +392,7 @@ void atbm_clear_wakeup_reg( struct atbm_common  *dev)
 			"%s: set_wakeup: can't read " \
 			"control register.\n", __func__);
 	}
-	
+
 	ret = atbm_reg_write_16_for_sleep(dev, ATBM_HIFREG_CONTROL_REG_ID, val16 & ~ATBM_HIFREG_CONT_WUP_BIT);
 	if (ret < 0) {
 		atbm_dbg(ATBM_APOLLO_DBG_ERROR,
@@ -426,7 +426,7 @@ void atbm_unregister_common(struct atbm_common *hw_priv)
 		hw_priv->close_driver = 1;
 		if(hw_priv->sbus_ops->sbus_xmit_func_deinit)
 			hw_priv->sbus_ops->sbus_xmit_func_deinit(hw_priv->sbus_priv);
-		if(hw_priv->sbus_ops->sbus_rev_func_deinit)	
+		if(hw_priv->sbus_ops->sbus_rev_func_deinit)
 			hw_priv->sbus_ops->sbus_rev_func_deinit(hw_priv->sbus_priv);
 	}
 	atbm_unregister_bh(hw_priv);
@@ -498,7 +498,7 @@ static void atbm_configure_wifi_mode(struct atbm_common *hw_priv)
 					vif->ap_info.group_key.key_type = IEEE80211_ENC_TYPE;
 					vif->ap_info.key.key_type = IEEE80211_ENC_TYPE;
 				}
-				else if((apcfg_get.ap_cfg.key_mgmt == KEY_MGMT_WEP) || 
+				else if((apcfg_get.ap_cfg.key_mgmt == KEY_MGMT_WEP) ||
 				(apcfg_get.ap_cfg.key_mgmt == KEY_MGMT_WEP_SHARED)){
 					atbm_printk_err("%s:wep\n",__func__);
 					vif->ap_info.group_key.key_type = IEEE80211_ENC_WEP;
@@ -533,16 +533,16 @@ static void atbm_configure_wifi_mode(struct atbm_common *hw_priv)
 #ifndef CONFIG_ATBM_SDIO_ATCMD
  void atbm_get_connectconfig(struct atbm_common *hw_priv)
 {
-	struct	wsm_sdio_getconfig_cnf cnf;	
+	struct	wsm_sdio_getconfig_cnf cnf;
 	struct atbm_vif *vif = NULL;
-	
+
 	wsm_get_config(hw_priv,&cnf,sizeof(cnf));
 	vif = __ABwifi_hwpriv_to_vifpriv(hw_priv,0);
 	vif->connect_success = cnf.bconnect;
 	if(vif->connect_success){
 		atbm_sta_connect_event(vif,&cnf.con_event);
 	}
-	
+
 	atbm_printk_init("atbm_get_mac_address.%x:%x:%x:%x:%x\n",hw_priv->mac_addr[1],hw_priv->mac_addr[2],hw_priv->mac_addr[3],hw_priv->mac_addr[4],hw_priv->mac_addr[5]);
 }
 #endif
@@ -552,7 +552,7 @@ static void atbm_configure_wifi_mode(struct atbm_common *hw_priv)
  void atbm_set_tcp_port_filter(struct atbm_common *hw_priv)
 {
 	wsm_set_tcp_filter(hw_priv,&hw_priv->tcp_filter_req,sizeof(hw_priv->tcp_filter_req));
-	
+
 	atbm_printk_init("tcp_port_filter addcnt.%x:\n",hw_priv->tcp_filter_req.des_cnt);
 	//dump_mem((u8 *)(&hw_priv->tcp_filter_req),sizeof(hw_priv->tcp_filter_req));
 }
@@ -605,10 +605,10 @@ int atbm_core_probe(const struct sbus_ops *sbus_ops,
 	hw_priv->tcp_filter_req.src_cnt = 1;
 	hw_priv->tcp_filter_req.des_tcpport[0] =  htons(5001);
 	hw_priv->tcp_filter_req.src_tcpport[0] =  htons(5001);
-	
+
 	hw_priv->ps_mode_req.powerave_level = 1;
 	hw_priv->ps_mode_req.powersave_mode = HAL_NO_SLEEP;
-	
+
 	hw_priv->buf_force_rx=1;
 	hw_priv->buf_force_tx=1;
 
@@ -696,9 +696,9 @@ __wait_start_up:
 		int loop =0;
 		atbm_printk_always("mdelay wait wsm_startup_done  !!\n");
 		while(hw_priv->wsm_caps.firmwareReady !=1){
-			mdelay(10);
-			schedule_timeout_interruptible(msecs_to_jiffies(20));
-			if(loop++>300){
+			//mdelay(10);
+			schedule_timeout_interruptible(msecs_to_jiffies(1));
+			if(loop++>1200){
 				atbm_printk_init("wait_event_interruptible_timeout wsm_startup_done timeout ERROR !!\n");
 				#if (ATBM_WIFI_PLATFORM == PLATFORM_ANKAI_RTOS)
 				goto __wait_start_up;
@@ -734,7 +734,7 @@ __wait_start_up:
 	#ifdef TIME_DEBUG
 	jiffies_update(0);
 	#endif
-	
+
 #ifdef CONFIG_ATBM_SDIO_ATCMD
 	atbm_netdev_none(hw_priv);
 #else //CONFIG_ATBM_SDIO_ATCMD
@@ -766,7 +766,7 @@ err1:
 	if(hw_priv->sbus_ops->sbus_xmit_func_deinit)
 		hw_priv->sbus_ops->sbus_xmit_func_deinit(hw_priv->sbus_priv);
 	if(hw_priv->sbus_ops->sbus_rev_func_deinit)
-		hw_priv->sbus_ops->sbus_rev_func_deinit(hw_priv->sbus_priv);	
+		hw_priv->sbus_ops->sbus_rev_func_deinit(hw_priv->sbus_priv);
 	wsm_buf_deinit(&hw_priv->wsm_cmd_buf);
 #ifdef CONFIG_PM
 	atbm_pm_deinit(&hw_priv->pm_state);

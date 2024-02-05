@@ -36,7 +36,7 @@ platform ?=PLATFORM_SUN6I
 sys ?= linux
 #arch:arm or arm64 or mips(NVT98517)
 arch ?= arm
-#export 
+#export
 #ATBM_WIFI__EXT_CCFLAGS = -DATBM_WIFI_PLATFORM=$(platform)
 
 ifeq ($(CUSTOMER_SUPPORT_USED),y)
@@ -132,12 +132,15 @@ KERDIR:=/wifi_prj/staff/zhouzhanchao/rockchip_new/kernel1/
 CROSS_COMPILE:=/wifi_prj/staff/zhouzhanchao/rockchip_new/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9/bin/aarch64-linux-android-
 else
 #KERDIR:=/wifi_prj/staff/zhouzhanchao/iTop4412_Kernel_3.0/
-KERDIR:=/wifi_prj/wuping/project/linux/iTop4412_Kernel_3.0/
-CROSS_COMPILE:=/usr/local/arm/arm-2009q3/bin/arm-none-linux-gnueabi-
+#KERDIR:=/wifi_prj/wuping/project/linux/iTop4412_Kernel_3.0/
+#CROSS_COMPILE:=/usr/local/arm/arm-2009q3/bin/arm-none-linux-gnueabi-
+KERDIR:=/home/xy/otter_ipc_linux/sysdrv/source/kernel/
+CROSS_COMPILE:=arm-rockchip830-linux-uclibcgnueabihf-
+EXTRA_CFLAGS += -Wno-declaration-after-statement
 endif
 export
-arch = arm64
-ATBM_WIFI__EXT_CCFLAGS = -DATBM_WIFI_PLATFORM=10 
+arch = arm
+ATBM_WIFI__EXT_CCFLAGS = -DATBM_WIFI_PLATFORM=10
 endif
 
 #
@@ -187,6 +190,7 @@ KERDIR:=/wifi_prj/staff/zhouzhanchao/android4_4_SIN/Source/lichee/linux-3.3
 CROSS_COMPILE:=/wifi_prj/staff/zhouzhanchao/android4_4_SIN/Source/lichee/brandy/gcc-linaro/bin/arm-linux-gnueabi-
 else
 KERDIR:=/wifi_prj/staff/wangzhiguang/Linux_sun6i/lichee/linux-3.3/
+#KERDIR:=/wifi_prj/staff/panxuqiang/wifi_prj/branch/linux_sun6i/
 CROSS_COMPILE:=/wifi_prj/staff/wangzhiguang/Linux_sun6i/lichee/buildroot/output/external-toolchain/bin/arm-linux-gnueabi-
 endif
 export
@@ -272,14 +276,14 @@ endif
 ifeq ($(platform),PLATFORM_HI3516EV200)
 KERDIR:=/wifi_prj/staff/panxuqiang/wifi_prj/Hi3516EV200_SDK_V1.0.0.2/osdrv/opensource/kernel/linux-4.9.y
 CROSS_COMPILE:=/opt/hisi-linux/x86-arm/arm-himix100-linux/bin/arm-himix100-linux-
-export 
+export
 arch = arm
 ATBM_WIFI__EXT_CCFLAGS = -DATBM_WIFI_PLATFORM=19
 #ATBM_WIFI__EXT_CCFLAGS += -mcpu=cortex-a7 -mfloat-abi=softfp -mfpu=neon-vfpv4 -fno-aggressive-loop-optimizations
 endif
 
 ifeq ($(platform),PLATFORM_PCX86)
-all:install
+all:install tools_install
 
 install:
 	@echo "make PLATFORM_PCX86"
@@ -291,10 +295,13 @@ all:install
 
 install:
 	@echo "make PLATFORM_CROSS=$(platform)"
-	$(MAKE) all -f $(MAKEFILE_SUB) ARCH=$(arch)  CROSS_COMPILE=$(CROSS_COMPILE) KDIR=$(KERDIR) SYS=$(sys) PLAT=$(platform) -j8
+	#$(MAKE) all -f $(MAKEFILE_SUB) ARCH=$(arch)  CROSS_COMPILE=$(CROSS_COMPILE) KDIR=$(KERDIR) SYS=$(sys) PLAT=$(platform) -j8
+	$(MAKE) all -f $(MAKEFILE_SUB) ARCH=$(ARCH)  CROSS_COMPILE=$(CROSS_COMPILE) KDIR=$(KERNEL_DIR) SYS=$(sys) PLAT=$(platform) -j8
+	arm-rockchip830-linux-uclibcgnueabihf-strip --strip-debug $(shell pwd)/driver_install/atbm6041_wifi_sdio.ko
+	cp $(shell pwd)/driver_install/atbm6041_wifi_sdio.ko $(M_OUT_DIR) -rf
 clean:
 	$(MAKE) -f $(MAKEFILE_SUB) KDIR=$(KERDIR) ARCH=$(arch) clean
-strip:	
+strip:
 	$(MAKE) -f $(MAKEFILE_SUB) KDIR=$(KERDIR) ARCH=$(arch) SYS=$(sys) PLAT=$(platform) strip
 get_ver:
 	$(MAKE) -f $(MAKEFILE_SUB) KDIR=$(KERDIR) ARCH=$(arch) SYS=$(sys) PLAT=$(platform) get_ver
@@ -311,11 +318,11 @@ menuconfig:buid_config
 endif
 else
 ifeq ($(platform),PLATFORM_XUNWEI)
-export 
+export
 ATBM_WIFI__EXT_CCFLAGS = -DATBM_WIFI_PLATFORM=1
 endif
 ifeq ($(platform),PLATFORM_SUN6I)
-export 
+export
 ATBM_WIFI__EXT_CCFLAGS = -DATBM_WIFI_PLATFORM=2
 endif
 ifeq ($(platform),PLATFORM_SUN6I_64)
@@ -358,7 +365,7 @@ ifeq ($(platform),PLATFORM_NVT98517)
 export
 ATBM_WIFI__EXT_CCFLAGS = -DATBM_WIFI_PLATFORM=14
 endif
-export 
+export
 include $(src)/Makefile.build.kernel
 endif
 

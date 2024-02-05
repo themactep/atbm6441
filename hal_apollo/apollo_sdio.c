@@ -12,7 +12,7 @@
  * published by the Free Software Foundation.
  */
  #define DEBUG 1
-//#undef CONFIG_ATBM_APOLLO_USE_GPIO_IRQ 
+//#undef CONFIG_ATBM_APOLLO_USE_GPIO_IRQ
 #ifdef LINUX_OS
 #include <linux/version.h>
 #include <linux/module.h>
@@ -120,7 +120,7 @@ struct sbus_priv {
 	int 			oob_irq_enabled;
 	void			*irq_priv;
 	void            *irq_priv_suspend;
-	
+
 	struct sbus_wtd         * wtd;
 };
 struct sbus_wtd {
@@ -161,7 +161,7 @@ static struct sbus_wtd         g_wtd={
 static struct task_struct *atbm_kthread_get(struct atbm_sdio_thread *thread)
 {
 	struct task_struct *bh = NULL;
-	
+
 	rcu_read_lock();
 	bh = rcu_dereference(thread->thread);
 	if(bh){
@@ -177,19 +177,19 @@ static void atbm_kthread_put(struct task_struct *bh)
 	put_task_struct(bh);
 }
 static int atbm_kthread_try_suspend(struct atbm_sdio_thread *thread)
-{	
+{
 	struct task_struct *bh = atbm_kthread_get(thread);
-	
+
 	if(bh == NULL)
 		goto exit;
-	
+
 	if(test_bit(THREAD_SHOULD_STOP,&thread->flags))
 		goto exit;
-	
+
 	if (!test_bit(THREAD_SUSPENED, &thread->flags)) {
-		
+
 		set_bit(THREAD_SHOULD_SUSPEND, &thread->flags);
-		
+
 		if(bh != current){
 			wake_up_process(bh);
 			/*
@@ -198,7 +198,7 @@ static int atbm_kthread_try_suspend(struct atbm_sdio_thread *thread)
 			wait_for_completion_timeout(&thread->suspended,msecs_to_jiffies(1000));
 		}
 	}
-exit:	
+exit:
 	if(bh)
 		atbm_kthread_put(bh);
 	return 0;
@@ -206,16 +206,16 @@ exit:
 static void atbm_kthread_resume(struct atbm_sdio_thread *thread)
 {
 	struct task_struct *bh = atbm_kthread_get(thread);
-	
+
 	if(bh == NULL){
 		return;
 	}
-	
+
 	clear_bit(THREAD_SHOULD_SUSPEND, &thread->flags);
-	if (test_and_clear_bit(THREAD_SUSPENED, &thread->flags)) {		
+	if (test_and_clear_bit(THREAD_SUSPENED, &thread->flags)) {
 		wake_up_process(bh);
 	}
-	
+
 	atbm_kthread_put(bh);
 }
 
@@ -238,7 +238,7 @@ static void atbm_kthread_into_suspend(struct atbm_sdio_thread *thread)
 	__set_current_state(TASK_INTERRUPTIBLE);
 	while (test_bit(THREAD_SHOULD_SUSPEND, &thread->flags)) {
 		if (!test_and_set_bit(THREAD_SUSPENED, &thread->flags))
-			complete(&thread->suspended);	
+			complete(&thread->suspended);
 		if(kthread_should_stop()){
 			set_bit(THREAD_SHOULD_STOP,&thread->flags);
 			clear_bit(THREAD_SHOULD_SUSPEND, &thread->flags);
@@ -260,7 +260,7 @@ static int atbm_sdio_wait_action(struct atbm_sdio_thread *thread)
 	unsigned long period = idle_period;
 wake:
 	period = idle_period;
-	set_current_state(TASK_INTERRUPTIBLE);	
+	set_current_state(TASK_INTERRUPTIBLE);
 	while (!atbm_kthread_should_stop(thread)) {
 		if (test_and_clear_bit(THREAD_WAKEUP,
 				       &thread->flags)) {
@@ -268,7 +268,7 @@ wake:
 			__set_current_state(TASK_RUNNING);
 			return 0;
 		}else if(test_bit(THREAD_SHOULD_SUSPEND,&thread->flags)){
-			
+
 			atbm_printk_pm("%s: go to suspend...\n",__func__);
 			atbm_kthread_into_suspend(thread);
 			atbm_printk_pm("%s: exit from suspend...\n",__func__);
@@ -285,7 +285,7 @@ wake:
 		if (!atbm_kthread_should_stop(thread))
 			period = schedule_timeout(idle_period);
 		set_current_state(TASK_INTERRUPTIBLE);
-		
+
 	}
 	__set_current_state(TASK_RUNNING);
 	return -1;
@@ -301,7 +301,7 @@ static int atbm_sdio_irq_period(struct atbm_sdio_thread *thread)
 	struct atbm_common *hw_priv = self->core;
 	#ifdef LINUX_OS
 	printk_once("[atbm_log]:rx timeout\n");
-	
+
 	hw_priv->sbus_ops->lock(hw_priv->sbus_priv);
 	/*
 	*check sdio irq thread has process the irq;
@@ -310,7 +310,7 @@ static int atbm_sdio_irq_period(struct atbm_sdio_thread *thread)
 		ret = 1;
 		goto exit;
 	}
-	atbm_bh_read_ctrl_reg_unlock(hw_priv, &ctrl_reg);	
+	atbm_bh_read_ctrl_reg_unlock(hw_priv, &ctrl_reg);
 	if(ctrl_reg & ATBM_HIFREG_CONT_NEXT_LEN_MASK){
 		__set_current_state(TASK_RUNNING);
 		atbm_printk_err("%s:Miss\n",__func__);
@@ -336,17 +336,17 @@ static int atbm_sdio_rx_pre_sched(struct atbm_sdio_thread *thread)
 	}
 	hw_priv->sbus_ops->lock(hw_priv->sbus_priv);
 	atbm_bh_read_ctrl_reg_unlock(hw_priv, &ctrl_reg);
-	
+
 	if(ctrl_reg & ATBM_HIFREG_CONT_NEXT_LEN_MASK){
 		__set_current_state(TASK_RUNNING);
 		atbm_sdio_miss_irq(hw_priv->sbus_priv);
 		ret = 1;
 		goto exit;
 	}
-	
+
 #ifdef CONFIG_ATBM_APOLLO_USE_GPIO_IRQ
 	atbm_oob_intr_set(hw_priv->sbus_priv,true);
-#endif		
+#endif
 	__atbm_irq_enable(hw_priv,1);
 exit:
 	hw_priv->sbus_ops->unlock(hw_priv->sbus_priv);
@@ -369,7 +369,7 @@ static int atbm_sdio_rx_thread(void *priv)
 {
 	struct sbus_priv *self = (struct sbus_priv *)priv;
 	struct sched_param param = { .sched_priority = 1 };
-	
+
 	atbm_printk_init("%s\n",__func__);
 	/*
 	*the policy of the sheduler is same with the sdio irq thread
@@ -412,7 +412,7 @@ static int atbm_sdio_tx_thread(void *priv)
 #endif
 	atbm_printk_init("%s\n",__func__);
 	sched_setscheduler(current, SCHED_FIFO, &param);
-		
+
 	while(!atbm_sdio_wait_action(&self->tx_thread)){
 		#ifndef LINUX_OS
 		process_wait_timeout(&self->tx_wake, HZ);
@@ -420,14 +420,14 @@ static int atbm_sdio_tx_thread(void *priv)
 		//	continue;
 		//}
 		#endif
-#ifdef CONFIG_ATBM_SDIO_TX_HOLD	
+#ifdef CONFIG_ATBM_SDIO_TX_HOLD
 		atbm_sdio_lock(self);
 #endif
 		atbm_sdio_tx_bh(self->core);
 		#ifndef LINUX_OS
 		clear_bit(THREAD_WAKEUP, &self->tx_thread.flags);
 		#endif
-#ifdef CONFIG_ATBM_SDIO_TX_HOLD	
+#ifdef CONFIG_ATBM_SDIO_TX_HOLD
 		atbm_sdio_unlock(self);
 #endif
 	}
@@ -439,7 +439,7 @@ static int atbm_sdio_thread_init(struct atbm_sdio_thread *thread)
 {
 	void *bh;
 	struct sbus_priv *self = thread->self;
-	
+
 	bh = kthread_create(thread->thread_fn,self, thread->name);
 	if (IS_ERR(bh)){
 		thread->thread = NULL;
@@ -505,7 +505,7 @@ static int atbm_sdio_thread_deinit(struct atbm_sdio_thread *thread)
 static int atbm_sdio_thread_wakeup(struct atbm_sdio_thread *thread)
 {
 	void *bh;
-	
+
 	rcu_read_lock();
 	if(test_and_set_bit(THREAD_WAKEUP, &thread->flags) == 0){
 		bh = rcu_dereference(thread->thread);
@@ -517,7 +517,7 @@ static int atbm_sdio_thread_wakeup(struct atbm_sdio_thread *thread)
 }
 static int atbm_sdio_xmit_init(struct sbus_priv *self)
 {
-	struct atbm_common *hw_priv = self->core;	
+	struct atbm_common *hw_priv = self->core;
 	struct atbm_sdio_thread *thread = &self->tx_thread;
 
 	#ifndef LINUX_OS
@@ -541,7 +541,7 @@ static int atbm_sdio_xmit_init(struct sbus_priv *self)
 		#endif
 		return -1;
 	}
-	
+
 	hw_priv->xmit_buff = atbm_kzalloc(SDIO_TX_MAXLEN, GFP_KERNEL);
 
 	if(hw_priv->xmit_buff == NULL){
@@ -559,11 +559,11 @@ static int atbm_sdio_xmit_deinit(struct sbus_priv *self)
 	atbm_printk_exit("atbm_sdio_xmit_deinit\n");
 
 	atbm_sdio_thread_deinit(&self->tx_thread);
-	
+
 	if(self->core->xmit_buff){
 		atbm_kfree(self->core->xmit_buff);
 		self->core->xmit_buff = NULL;
-	}	
+	}
 	return 0;
 }
 static int atbm_sdio_rev_init(struct sbus_priv *self)
@@ -599,7 +599,7 @@ static int atbm_sdio_rev_init(struct sbus_priv *self)
 static int atbm_sdio_rev_deinit(struct sbus_priv *self)
 {
 	atbm_printk_exit("atbm_sdio_rev_deinit\n");
-	
+
 	return atbm_sdio_thread_deinit(&self->rx_thread);
 }
 
@@ -643,7 +643,7 @@ static int atbm_sdio_rev_giveback(struct sbus_priv *self,void *giveback)
 	struct wsm_rx *rx = (struct wsm_rx *)giveback;
 	u32 hw_xmited = rx->channel_type;
 	int hw_free;
-	
+
 	spin_lock_bh(&hw_priv->tx_com_lock);
 	BUG_ON((int)hw_xmited > (int)hw_priv->n_xmits);
 	if(hw_priv->n_xmits - hw_xmited <= hw_priv->wsm_caps.numInpChBufs){
@@ -748,9 +748,9 @@ irqreturn_t atbm_gpio_irq(int irq, void *dev_id)
 		if(!in_interrupt()){
 			sdio_hold = true;
 			atbm_sdio_lock(self);
-		}		
+		}
 		atbm_oob_intr_set(self, 0);
-		self->irq_handler(self->irq_priv);		
+		self->irq_handler(self->irq_priv);
 		if(sdio_hold == true){
 			WARN_ON(in_interrupt());
 			sdio_hold = false;
@@ -776,7 +776,7 @@ static int atbm_request_irq(struct sbus_priv *self)
 	int func_num;
 	u8 cccr;
 //	int bgf_irq;
-	
+
 	/* Hack to access Fuction-0 */
 	func_num = self->func->num;
 	self->func->num = 0;
@@ -813,7 +813,7 @@ err:
 	return ret;
 }
 #endif
-static void atbm_sdio_miss_irq(struct sbus_priv *self) 
+static void atbm_sdio_miss_irq(struct sbus_priv *self)
 {
 #ifdef CONFIG_ATBM_APOLLO_USE_GPIO_IRQ
 	atbm_oob_intr_set(self, 0);
@@ -900,7 +900,7 @@ static int atbm_detect_card(const struct atbm_platform_data *pdata)
 	struct device *dev;
 	static struct platform_device *sdio_platform_dev = NULL;
 	int status = 0;
-	
+
 	sdio_platform_dev = platform_device_alloc("atbmsdiowifi",0);
 	if(sdio_platform_dev == NULL){
 		status = -ENOMEM;
@@ -911,9 +911,9 @@ static int atbm_detect_card(const struct atbm_platform_data *pdata)
 		status = -ENOMEM;
 		goto platform_dev_err;
 	}
-	
+
 	mmc = mmc_alloc_host(0, &sdio_platform_dev->dev);
-	
+
 	if (!mmc){
 		status = -ENOMEM;
 		goto exit;
@@ -1129,9 +1129,9 @@ static void atbm_sdio_release_err_cmd(struct atbm_common	*hw_priv)
 		hw_priv->wsm_cmd.cmd = 0xFFFF;
 		hw_priv->wsm_cmd.ptr = NULL;
 		hw_priv->wsm_cmd.arg = NULL;
-		printk_once(KERN_ERR "%s:release wsm_cmd.lock\n",__func__);		
-		wake_up(&hw_priv->wsm_cmd_wq);		
-	}	
+		printk_once(KERN_ERR "%s:release wsm_cmd.lock\n",__func__);
+		wake_up(&hw_priv->wsm_cmd_wq);
+	}
 	spin_unlock_bh(&hw_priv->wsm_cmd.lock);
 }
 
@@ -1318,7 +1318,7 @@ static void atbm_sdio_disconnect(struct sdio_func *func)
 	#endif
 	if (self) {
 		atomic_set(&g_wtd.wtd_probe, 0);
-		
+
 		if (self->core) {
 			atbm_core_release(self->core);
 			self->core = NULL;
@@ -1360,7 +1360,7 @@ static int atbm_suspend(struct device *dev)
 	if (ret)
 		atbm_dbg(ATBM_APOLLO_DBG_ERROR,
 			   "set sdio wake up irq flag failed:%d\n", ret);
-	atbm_printk_err("sdio suspend\n");	
+	atbm_printk_err("sdio suspend\n");
 	ret = atbm_bh_suspend(self->core);
 	if(ret == 0){
 		self->irq_handler_suspend = self->irq_handler;
@@ -1377,7 +1377,7 @@ static int atbm_resume(struct device *dev)
 	struct sdio_func *func = dev_to_sdio_func(dev);
 	struct sbus_priv *self = atbm_sdio_get_drvdata(func);
 	int ret = 0;
-	
+
 	atbm_printk_err("sdio resume\n");
 	atbm_sdio_lock(self);
 	atbm_printk_err("%s:disable irq\n",__func__);
@@ -1452,8 +1452,8 @@ static int  atbm_sdio_init(void)
 			goto err_clk;
 	}
 /*
-* modify for rockchip platform
-*/
+ * modify for rockchip platform
+ */
 #if (ATBM_WIFI_PLATFORM == 10)
 	if (pdata->insert_ctrl&&pdata->power_ctrl)
 	{
@@ -1540,7 +1540,7 @@ static void  atbm_sdio_exit(void)
 }
 
 #ifdef LINUX_OS
-static 
+static
 #endif
 int __init apollo_sdio_module_init(void)
 {
@@ -1563,10 +1563,10 @@ int __init apollo_sdio_module_init(void)
 }
 
 #ifdef LINUX_OS
-static 
+static
 #endif
 void  apollo_sdio_module_exit(void)
-{	
+{
 	#ifdef TIME_DEBUG
 	jiffies_update(1);
 	#endif
@@ -1596,3 +1596,4 @@ void  apollo_sdio_module_exit(void)
 
 module_init(apollo_sdio_module_init);
 module_exit(apollo_sdio_module_exit);
+MODULE_IMPORT_NS(VFS_internal_I_am_really_a_filesystem_and_am_NOT_a_driver);

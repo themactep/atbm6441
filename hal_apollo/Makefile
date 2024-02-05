@@ -2,26 +2,41 @@
 #CONFIG_USB_AGGR_URB_TX
 #CONFIG_TX_NO_CONFIRM
 #
-# ¿ÉÒÔÓÃÀ´Ñ¡Ôñ²»Í¬ÊÇÄ£Ê½£¬CONFIG_USB_AGGR_URB_TX ¶¨ÒåÉÏÊ±Ò»¶¨ÐèÒª¶¨ÒåCONFIG_USE_DMA_ADDR_BUFFER
-# 1> CONFIG_USB_AGGR_URB_TX + CONFIG_TX_NO_CONFIRM£¬Ã¿¸öurb ·¢ËÍ¶à¸ötxframe ²¢ÇÒ²»ÐèÒªconfirm£¬ÐèÒª´ò¿ªlmacµÄNO_NEED_CONFIRM ºê£¬²¢ÇÒratecontrolÔÚlmac ÊµÏÖ
-# 2> CONFIG_USB_AGGR_URB_TX Ã¿¸öurb ·¢ËÍ¶à¸ötxframe ²¢ÇÒÐèÒªconfirm£¬ÐèÒª¹Ø±ÕlmacµÄNO_NEED_CONFIRM ºê
-# 3> ËùÓÐºê¶¼²»¶¨Òå£¬Ã¿¸öurb ·¢ËÍÒ»¸ötxframe ²¢ÇÒÐèÒªconfirm£¬²¢ÇÒurbÖ±½ÓÊ¹ÓÃskbbuffer£¬ÐèÒª¹Ø±ÕlmacµÄNO_NEED_CONFIRM ºê
-# 4> ¶¨ÒåCONFIG_USE_DMA_ADDR_BUFFER£¬Ã¿¸öurb ·¢ËÍÒ»¸ötxframe ²¢ÇÒÐèÒªconfirm£¬²¢ÇÒurbÖ±½ÓDMAbuffer£¬ÐèÒª°ÑÊý¾Ý´Óskb copyµ½DMAbuffer£¬ÐèÒª¹Ø±ÕlmacµÄNO_NEED_CONFIRM ºê£¬
-# 5> ¶¨ÒåCONFIG_USE_DMA_ADDR_BUFFER+ CONFIG_TX_NO_CONFIRM£¬Ã¿¸öurb ·¢ËÍÒ»¸ötxframe ²¢ÇÒ²»ÐèÒªconfirm£¬²¢ÇÒurbÖ±½ÓDMAbuffer£¬ÐèÒª°ÑÊý¾Ý´Óskb copyµ½DMAbuffer£¬ÐèÒª¿ªlmacµÄNO_NEED_CONFIRM ºê£¬²¢ÇÒratecontrolÔÚlmac ÊµÏÖ
-# 6> ¶¨ÒåCONFIG_TX_NO_CONFIRM£¬Ã¿¸öurb ·¢ËÍÒ»¸ötxframe ²¢ÇÒ²»ÐèÒªconfirm£¬²¢ÇÒurbÖ±½ÓÊ¹ÓÃskbbuffer£¬ÐèÒª´ò¿ªlmacµÄNO_NEED_CONFIRM ºê£¬²¢ÇÒratecontrolÔÚlmac ÊµÏÖ
+# å¯ä»¥ç”¨æ¥é€‰æ‹©ä¸åŒæ˜¯æ¨¡å¼ï¼ŒCONFIG_USB_AGGR_URB_TX å®šä¹‰ä¸Šæ—¶ä¸€å®šéœ€è¦å®šä¹‰CONFIG_USE_DMA_ADDR_BUFFER
+# 1> CONFIG_USB_AGGR_URB_TX + CONFIG_TX_NO_CONFIRMï¼Œæ¯ä¸ªurb å‘é€å¤šä¸ªtxframe å¹¶ä¸”ä¸éœ€è¦confirmï¼Œéœ€è¦æ‰“å¼€lmacçš„NO_NEED_CONFIRM å®ï¼Œå¹¶ä¸”ratecontrolåœ¨lmac å®žçŽ°
+# 2> CONFIG_USB_AGGR_URB_TX æ¯ä¸ªurb å‘é€å¤šä¸ªtxframe å¹¶ä¸”éœ€è¦confirmï¼Œéœ€è¦å…³é—­lmacçš„NO_NEED_CONFIRM å®
+# 3> æ‰€æœ‰å®éƒ½ä¸å®šä¹‰ï¼Œæ¯ä¸ªurb å‘é€ä¸€ä¸ªtxframe å¹¶ä¸”éœ€è¦confirmï¼Œå¹¶ä¸”urbç›´æŽ¥ä½¿ç”¨skbbufferï¼Œéœ€è¦å…³é—­lmacçš„NO_NEED_CONFIRM å®
+# 4> å®šä¹‰CONFIG_USE_DMA_ADDR_BUFFERï¼Œæ¯ä¸ªurb å‘é€ä¸€ä¸ªtxframe å¹¶ä¸”éœ€è¦confirmï¼Œå¹¶ä¸”urbç›´æŽ¥DMAbufferï¼Œéœ€è¦æŠŠæ•°æ®ä»Žskb copyåˆ°DMAbufferï¼Œéœ€è¦å…³é—­lmacçš„NO_NEED_CONFIRM å®ï¼Œ
+# 5> å®šä¹‰CONFIG_USE_DMA_ADDR_BUFFER+ CONFIG_TX_NO_CONFIRMï¼Œæ¯ä¸ªurb å‘é€ä¸€ä¸ªtxframe å¹¶ä¸”ä¸éœ€è¦confirmï¼Œå¹¶ä¸”urbç›´æŽ¥DMAbufferï¼Œéœ€è¦æŠŠæ•°æ®ä»Žskb copyåˆ°DMAbufferï¼Œéœ€è¦å¼€lmacçš„NO_NEED_CONFIRM å®ï¼Œå¹¶ä¸”ratecontrolåœ¨lmac å®žçŽ°
+# 6> å®šä¹‰CONFIG_TX_NO_CONFIRMï¼Œæ¯ä¸ªurb å‘é€ä¸€ä¸ªtxframe å¹¶ä¸”ä¸éœ€è¦confirmï¼Œå¹¶ä¸”urbç›´æŽ¥ä½¿ç”¨skbbufferï¼Œéœ€è¦æ‰“å¼€lmacçš„NO_NEED_CONFIRM å®ï¼Œå¹¶ä¸”ratecontrolåœ¨lmac å®žçŽ°
 #
-##¶ÔÓÚµ÷¶ÈÂý+cpuÇ¿µÄ°å×ÓÊ¹ÓÃ Ä£Ê½1 »òÕß Ä£Ê½2
-##¶ÔÓÚµ÷¶È¿ì+cpuÂýµÄ°å×ÓÊ¹ÓÃ Ä£Ê½3 »òÕß Ä£Ê½6
-## Ä¬ÈÏÊ¹ÓÃÄ£Ê½ 3
+##å¯¹äºŽè°ƒåº¦æ…¢+cpuå¼ºçš„æ¿å­ä½¿ç”¨ æ¨¡å¼1 æˆ–è€… æ¨¡å¼2
+##å¯¹äºŽè°ƒåº¦å¿«+cpuæ…¢çš„æ¿å­ä½¿ç”¨ æ¨¡å¼3 æˆ–è€… æ¨¡å¼6
+## é»˜è®¤ä½¿ç”¨æ¨¡å¼ 3
 #####################################################################################################################################################################################################################
-##Ö¸¶¨ÅäÖÃÎÄ¼þÂ·¾¶£¬µ±ÅäÖÃÎÄ¼þ´æÔÚÊ±Ê¹ÓÃÅäÖÃÎÄ¼þÖÐµÄdcxoÖµ²»Ê¹ÓÃefuseÖÐµÄdcxo£¬ÅäÖÃÎÄ¼þÖÐµÄdelta_gainÎªÐÞÕýÖµ£¬Èç¹ûÎÄ¼þ²»´æÔÚÔòÖ±½ÓÊ¹ÓÃefuseÖÐµÄÊý¾Ý
+##æŒ‡å®šé…ç½®æ–‡ä»¶è·¯å¾„ï¼Œå½“é…ç½®æ–‡ä»¶å­˜åœ¨æ—¶ä½¿ç”¨é…ç½®æ–‡ä»¶ä¸­çš„dcxoå€¼ä¸ä½¿ç”¨efuseä¸­çš„dcxoï¼Œé…ç½®æ–‡ä»¶ä¸­çš„delta_gainä¸ºä¿®æ­£å€¼ï¼Œå¦‚æžœæ–‡ä»¶ä¸å­˜åœ¨åˆ™ç›´æŽ¥ä½¿ç”¨efuseä¸­çš„æ•°æ®
+
+# Can be used to select different modes. When defining CONFIG_USB_AGGR_URB_TX, you must define CONFIG_USE_DMA_ADDR_BUFFER.
+# 1> CONFIG_USB_AGGR_URB_TX + CONFIG_TX_NO_CONFIRM, each urb sends multiple txframes and does not require confirmation. You need to open the NO_NEED_CONFIRM macro of lmac, and ratecontrol is implemented in lmac
+# 2> CONFIG_USB_AGGR_URB_TX Each urb sends multiple txframes and needs to be confirmed. The NO_NEED_CONFIRM macro of lmac needs to be turned off.
+# 3> All macros are not defined. Each urb sends a txframe and needs to be confirmed, and the urb uses skbbuffer directly, and the NO_NEED_CONFIRM macro of lmac needs to be turned off.
+# 4> Define CONFIG_USE_DMA_ADDR_BUFFER, each urb sends a txframe and needs to be confirmed, and the urb directly DMAbuffer, the data needs to be copied from skb to DMAbuffer, and the NO_NEED_CONFIRM macro of lmac needs to be turned off.
+# 5> Define CONFIG_USE_DMA_ADDR_BUFFER+ CONFIG_TX_NO_CONFIRM, each urb sends a txframe and does not require confirmation, and the urb directly DMBuffer, the data needs to be copied from skb to DMAbuffer, the NO_NEED_CONFIRM macro of lmac needs to be opened, and ratecontrol is implemented in lmac
+# 6> Define CONFIG_TX_NO_CONFIRM, each urb sends a txframe and does not require confirmation, and the urb directly uses skbbuffer, the NO_NEED_CONFIRM macro of lmac needs to be turned on, and ratecontrol is implemented in lmac
+#
+##For boards with slow scheduling and strong CPU, use mode 1 or mode 2
+##For boards with fast scheduling and slow CPU, use mode 3 or mode 6
+## Default usage mode 3
+################################################ ################################################ ################################################ ################################################ #############
+##Specify the configuration file path. When the configuration file exists, use the dcxo value in the configuration file instead of using the dcxo in efuse. The delta_gain in the configuration file is the correction value. If the file does not exist, use the data in efuse directly.
+
 ATBM_CONFIG_FILE="/atbm_txpwer_dcxo_cfg.txt"
 ifneq ($(IF1NAME),)
 ccflags-y += -DCONFIG_IF1NAME=\"$(IF1NAME)\"
 endif
 ifneq ($(IF2NAME),)
 ccflags-y += -DCONFIG_IF2NAME=\"$(IF2NAME)\"
-endif		
+endif
 ATBM_MODULES_NAME ?= $(MODULES_NAME)
 ifneq ($(FW),)
 ccflags-y += -DCONFIG_FW_NAME=\"$(FW)\"
@@ -36,7 +51,7 @@ ccflags-y += -DCONFIG_ATBM_IOCTRL
 ccflags-y += -DOPER_CLOCK_USE_SEM
 ccflags-y += -DEXIT_MODULE_RESET_USB=0
 ccflags-y += -DATBM_VIF_LIST_USE_RCU_LOCK
-ccflags-y += -DATBM_SUPPORT_SMARTCONFIG 
+ccflags-y += -DATBM_SUPPORT_SMARTCONFIG
 
 ifeq ($(platform),PLATFORM_AMLOGIC_S805)
 ccflags-y += -DCONFIG_ATBM_APOLLO_USE_GPIO_IRQ
@@ -58,7 +73,7 @@ ccflags-y += -DCONFIG_ATBM_APOLLO_DEBUG
 ccflags-$(PMRELODDFW) += -DATBM_SUSPEND_REMOVE_INTERFACE
 ###################################################################
 #ATBM_PM_USE_EARLYSUSPEND
-#early suspend enbale
+#early suspend enable
 ###################################################################
 ccflags-$(EARLYSUSPEND) += -DATBM_PM_USE_EARLYSUSPEND
 ###################################################################
@@ -72,7 +87,7 @@ ccflags-$(MEM_DEBUG) += -DATBM_ALLOC_MEM_DEBUG
 ###################################################################
 ccflags-$(SKB_DEBUG) += -DATBM_ALLOC_SKB_DEBUG
 ####################################################################
-#CONFIG_TX_NO_CONFIRM      
+#CONFIG_TX_NO_CONFIRM
 #enable tx noconfirm
 ####################################################################
 ccflags-y += -DCONFIG_TX_NO_CONFIRM
@@ -154,30 +169,30 @@ ifeq ($(SPI_BUS),y)
 ccflags-y += -DSPI_BUS
 endif
 ccflags-y += -DPS_SETUP
-MODFLAGS =-DMODULE -fno-pic 
+MODFLAGS =-DMODULE -fno-pic
 CFLAGS_MODULE =$(MODFLAGS)
 
 ifeq ($(CONFIG_ATBM_APOLLO_DEBUGFS),y)
-ccflags-y  += -DCONFIG_ATBM_APOLLO_DEBUGFS
+ccflags-y += -DCONFIG_ATBM_APOLLO_DEBUGFS
 endif
-#ccflags-y  += -DCONFIG_ATBM_APOLLO_DEBUG
+#ccflags-y += -DCONFIG_ATBM_APOLLO_DEBUG
 ccflags-y += -DCONFIG_MAC80211_ATBM_RC_DEFAULT_MINSTREL
 #ccflags-y += -DMINSTREL_SAMPLE_SKIP_LOW_RATE_HT
 #ccflags-y += -DMINSTREL_SAMPLE_SKIP_LOW_RATE
 
-ccflags-y  += -DPROBE_RESP_EXTRA_IE
-#ccflags-y  += -DIPV6_FILTERING
+ccflags-y += -DPROBE_RESP_EXTRA_IE
+#ccflags-y += -DIPV6_FILTERING
 #ccflags-y += -DCONFIG_ATBM_APOLLO_TESTMODE
 #ccflags-y += -DCONFIG_NL80211_TESTMODE
 ccflags-y += -DCONFIG_MAC80211_ATBM_ROAMING_CHANGES
 ifeq ($(CONFIG_MAC80211_ATBM_DEBUGFS),y)
-ccflags-y  += -DCONFIG_MAC80211_ATBM_DEBUGFS
+ccflags-y += -DCONFIG_MAC80211_ATBM_DEBUGFS
 endif
 CFLAGS_driver-trace.o := -I$(src)
 
 # objects for PID algorithm
 
-ccflags-y  += -I$(PWD)/os/linux
+ccflags-y += -I$(PWD)/os/linux
 
 
 $(ATBM_MODULES_NAME)-y += \
@@ -191,9 +206,9 @@ $(ATBM_MODULES_NAME)-y += \
 ifneq ($(CONFIG_ATBM_SDIO_ATCMD),y)
 $(ATBM_MODULES_NAME)-y += \
 		sta_info.o \
-		txrx.o  \
+		txrx.o \
 		agg-rx.o \
-		rx.o		
+		rx.o
 endif
 
 ifeq ($(USB_BUS),y)
@@ -203,9 +218,9 @@ $(ATBM_MODULES_NAME)-y += apollo_sdio.o atbm_platform.o hwio_sdio.o bh_sdio.o dc
 else ifeq ($(SPI_BUS),y)
 $(ATBM_MODULES_NAME)-y += apollo_spi.o atbm_platform.o hwio_spi.o bh_spi.o
 endif
-$(ATBM_MODULES_NAME)-$(CONFIG_PM)		+= pm.o
-$(ATBM_MODULES_NAME)-$(MEM_DEBUG)       += ieee80211_atbm_mem.o
-$(ATBM_MODULES_NAME)-$(SKB_DEBUG)       += ieee80211_atbm_skb.o
+$(ATBM_MODULES_NAME)-$(CONFIG_PM) += pm.o
+$(ATBM_MODULES_NAME)-$(MEM_DEBUG) += ieee80211_atbm_mem.o
+$(ATBM_MODULES_NAME)-$(SKB_DEBUG) += ieee80211_atbm_skb.o
 
 obj-$(CONFIG_ATBM_APOLLO) += $(ATBM_MODULES_NAME).o
 

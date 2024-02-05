@@ -13,6 +13,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/un.h>
+#include <sys/ioctl.h>
 
 #include "atbm_tool.h"
 #include "atbm_ioctl_ext.h"
@@ -22,9 +23,9 @@
 #define ATBM_POWER_SET   _IOW(ATBM_POWER, 0, char)
 
 static struct ap_cfg ap_cfg_set;
-static struct etf_cfg etf_cfg_set; 
+static struct etf_cfg etf_cfg_set;
 static struct powersave_mode power_save_set;
-static struct tcp_filter_info tcp_filter_set; 
+static struct tcp_filter_info tcp_filter_set;
 static struct ipc_data_info ipc_data_set;
 static struct fast_cfg_recv_info fast_cfg_recv_set;
 static struct fast_cfg_send_info fast_cfg_send_set;
@@ -89,7 +90,7 @@ static struct transform rate_trans[RATE_INDEX_MAX]={
 };
 
 static int rate_set[20]={
-	10,   20, 55, 110,  60,  90, 120, 180, 240, 360, 
+	10,   20, 55, 110,  60,  90, 120, 180, 240, 360,
 	480, 540, 65, 130, 195, 260, 390, 520, 585, 650
 };
 
@@ -111,7 +112,7 @@ static char ap_key_set = 0;
 static char ap_key_id_set = 0;
 static char ap_key_mgmt_set = 0;
 static char driver_can_rmmod = 0;
-static char rmmod_auto = 1;
+static char rmmod_auto = 0;
 static char driver_switch = 0;
 static char ipc_server_set = 0;
 static char ipc_port_set = 0;
@@ -141,7 +142,7 @@ int powersave_transform( char *ps_type)
 				return ps_trans[i].type_value;
 			}
 		}
-		
+
 	}
 
 	printf("Line:%d fail\n", __LINE__);
@@ -249,7 +250,7 @@ int wifi_param_check(struct connect_info *info, check_type type, char is_ap)
 			{
 				printf("Line:%d ssid len %d is invalid\n", __LINE__,info->ssidLength);
 				goto err;
-				
+
 			}
 			break;
 		case CHECK_KEY:
@@ -531,7 +532,7 @@ int get_status_send(int fp, int argc, char *argv[])
 	int ret = 0;
 	struct status_info status_info;
 	struct in_addr addr;
- 
+
 	memset(&status_info, 0, sizeof(struct status_info));
 	ret = ioctl(fp, ATBM_STATUS, (unsigned int)(&status_info));
 	if (ret)
@@ -564,7 +565,7 @@ int get_status_send(int fp, int argc, char *argv[])
 	{
 		printf("wpa_state=INACTIVE\n");
 	}
- 
+
 	return 0;
 err:
 	return -1;
@@ -635,7 +636,7 @@ int list_filters_cmd(int fp, int argc, char *argv[])
 {
 	int ret = 0;
 	int i = 0;
-	struct tcp_filter_info tcp_filter_get; 
+	struct tcp_filter_info tcp_filter_get;
 
 	ret = ioctl(fp, ATBM_GET_FILTER, (unsigned int)(&tcp_filter_get));
 	if (!ret)
@@ -826,7 +827,7 @@ int scan_results_cmd(int fp, int argc, char *argv[])
 				for (i=0; i<scan_info.scan_cnt; i++)
 				{
 					MAC_printf(scan_info.scan_info[i].bssid);
-					printf("\t%d\t%d\t%s\n", scan_info.scan_info[i].rssi, 
+					printf("\t%d\t%d\t%s\n", scan_info.scan_info[i].rssi,
 						scan_info.scan_info[i].channel, scan_info.scan_info[i].ssid);
 				}
 			}
@@ -864,7 +865,7 @@ int set_wifi_mode_cmd(int fp, int argc, char *argv[])
 		printf("Line:%d invalid wifi mode %s\n", __LINE__, argv[0]);
 		goto err;
 	}
-	
+
 	ret = ioctl(fp, ATBM_WIFI_MODE, is_ap);
 	if (ret)
 	{
@@ -1052,7 +1053,7 @@ int get_country_cmd(int fp, int argc, char *argv[])
 {
 	int ret = 0;
 	char country_id = 0;
-	
+
 	ret = ioctl(fp, ATBM_GET_COUNTRY, &country_id);
 	if (ret)
 	{
@@ -1459,6 +1460,7 @@ int update_fw_cmd(int fp, int argc, char *argv[])
 
 		update.start = 0;
 		update.end = 1;
+		update.restart = 1;
 		ret = ioctl(fp, ATBM_UPDATE_FW, (unsigned int)(&update));
 		if (ret)
 		{
@@ -1625,7 +1627,7 @@ int send_ipc_data_cmd(int fp, int argc, char *argv[])
 			{
 				printf("invalid server argument.\n");
 				goto err;
-				
+
 			}
 			strcpy(ipc_data_set.server, argv[i]+7);
 			ipc_server_set = 1;
@@ -1635,7 +1637,7 @@ int send_ipc_data_cmd(int fp, int argc, char *argv[])
 			if (strlen(argv[i]) <= 5)
 			{
 				printf("invalid port argument.\n");
-				goto err;	
+				goto err;
 			}
 			ipc_data_set.port = atoi(argv[i]+5);
 			ipc_port_set = 1;
@@ -1645,7 +1647,7 @@ int send_ipc_data_cmd(int fp, int argc, char *argv[])
 			if (strlen(argv[i]) <= 4)
 			{
 				printf("invalid cnt argument.\n");
-				goto err;	
+				goto err;
 			}
 			send_cnt = atoi(argv[i]+4);
 		}
@@ -1767,9 +1769,9 @@ int get_etf_rx_info_cmd(int fp, int argc, char *argv[])
 		goto err;
 	}
 
-	printf("current etf rx: success_cnt%d, fcs_err_cnt:%d, per:%d%%, rssi:%d\n", 
-		rx_info.rx_success_cnt, 
-		rx_info.fcs_err_cnt, 
+	printf("current etf rx: success_cnt%d, fcs_err_cnt:%d, per:%d%%, rssi:%d\n",
+		rx_info.rx_success_cnt,
+		rx_info.fcs_err_cnt,
 		rx_info.fcs_err_cnt*100/(rx_info.rx_success_cnt+rx_info.fcs_err_cnt),
 		rx_info.rssi);
 
@@ -1819,7 +1821,7 @@ int add_netpattern_cmd(int fp, int argc, char *argv[])
 		netpattern_info.netpattern_len = 63;
 	}
 	memcpy(netpattern_info.netpattern_data, argv[4], netpattern_info.netpattern_len);
-	netpattern_info.netpattern_data[netpattern_info.netpattern_len] = '\0'; 
+	netpattern_info.netpattern_data[netpattern_info.netpattern_len] = '\0';
 
 	ret = ioctl(fp, ATBM_NETPATTERN_ADD, &netpattern_info);
 	if (ret)
@@ -2367,14 +2369,14 @@ int fast_cfg_recv_cmd(int fp, int argc, char *argv[])
 	int arg_cnt = 0;
 	int enable = 0;
 	int time = 0;
-	
+
 	if ((0 == argc) || (argc > 4) || (argc%2)){
 		printf("fast_cfg_recv variables:\n"
 	       "  enable (enable or diable fast cfg recv, refer: 0/1)\n"
 	       "  time (duration time fast cfg recv mode, refer: 0 ~ 65535(s) 0:always)\n");
 		return -1;
 	}
-	
+
 	memset(&fast_cfg_recv_set, 0, sizeof(fast_cfg_recv_set));
 
 	while (arg_cnt < argc){
@@ -2466,16 +2468,132 @@ int fast_cfg_send_cmd(int fp, int argc, char *argv[])
 			fast_cfg_send_set.password_len = pwd_len;
 			if(pwd_len){
 				memcpy(fast_cfg_send_set.password, argv[arg_cnt], pwd_len);
-			}			
+			}
 		}
 		arg_cnt ++;
-	}	
-	
+	}
+
 	if(ioctl(fp, ATBM_FAST_CFG_SEND, (unsigned int)(&fast_cfg_send_set))){
 		return -1;
 	}
 
 	return 0;
+}
+
+int insmod_driver(int test_insmod)
+{
+	int ret = 0;
+	int flags = 0;
+	int ip_set = 0;
+	struct status_info status_info;
+	int retry_cnt = 10;
+	fp = -1;
+
+	if (!test_insmod)
+	{
+		system("insmod /oem/usr/ko/atbm6041_wifi_sdio.ko");
+	}
+
+retry:
+	fp = open("/dev/atbm_ioctl", O_RDWR);
+	if ((fp < 0) && retry_cnt--)
+	{
+		printf("open /dev/atbm_ioctl fail and retry %d.\n", retry_cnt);
+		usleep(100000);
+		goto retry;
+	} else if (fp < 0) {
+		return -1;
+	}
+
+	is_insmod_driver = 1;
+	driver_can_rmmod = 0;
+
+	fcntl(fp, F_SETOWN, getpid());
+	flags = fcntl(fp, F_GETFL);
+	fcntl(fp, F_SETFL, flags | FASYNC);
+
+	memset(&status_info, 0, sizeof(struct status_info));
+	ret = ioctl(fp, ATBM_STATUS, (unsigned int)(&status_info));
+	if (ret)
+	{
+		printf("get initial wifi status fail.\n");
+		return -1;
+	}
+
+	memcpy(&status.event, &status_info.con_event, sizeof(status.event));
+	wifi_mode = status_info.wifimode;
+	printf("[WIFI_MODE] %s\n", wifi_mode?"AP":"STA");
+
+	if (wifi_mode)
+	{
+		ip_set = 1;
+	}
+	else
+	{
+		if (status_info.bconnect)
+		{
+			status.is_connected = 1;
+			ip_set = 1;
+			printf("CTRL-EVENT-STATE-CONNECTED - Connection to ");
+			MAC_printf(status.event.bssid);
+			printf(" completed\n");
+		}
+	}
+#ifndef CONFIG_ATBM_SDIO_ATCMD
+	if (ip_set)
+	{
+		if (ip_set_auto)
+		{
+			char cmd[30];
+			struct in_addr ip_addr;
+
+			ip_addr.s_addr = status.event.ipaddr;
+			sprintf(cmd, "ifconfig wlan0 %s", inet_ntoa(ip_addr));
+			system(cmd);
+			system("ifconfig wlan0 up");
+			#ifdef DEMO_TCP_SEND
+			connect_flag = 1;
+			sem_post(&sem_tcp_sync);
+			#endif
+		}
+	}
+#endif
+
+	driver_switch = 1;
+	return 0;
+}
+
+int rmmod_driver(void)
+{
+	#ifdef DEMO_TCP_SEND
+	connect_flag = 0;
+	#endif
+#ifndef CONFIG_ATBM_SDIO_ATCMD
+	system("ifconfig wlan0 down");
+#endif
+	close(fp);
+	fp = -1;
+	system("rmmod atbm6041_wifi_sdio.ko");
+	is_insmod_driver = 0;
+	driver_can_rmmod = 0;
+	return 0;
+}
+
+int enable_driver(int on)
+{
+	if (is_insmod_driver == on)
+	{
+		return 0;
+	}
+
+	if (on)
+	{
+		return insmod_driver(0);
+	}
+	else
+	{
+		return rmmod_driver();
+	}
 }
 
 
@@ -2695,7 +2813,7 @@ int cmd_parse(int fp, char *arg)
 {
 	int i = 0;
 	int cnt = sizeof(command)/sizeof(command[0]);
-	char *argv[MAX_ARGS];		
+	char *argv[MAX_ARGS];
 	int argc;
 	int ret = 0;
 
@@ -2731,120 +2849,9 @@ int cmd_parse(int fp, char *arg)
 			}
 		}
 	}
-	
+
 	printf("Line:%d not match command\n", __LINE__);
 	return -1;
-}
-
-int insmod_driver(int test_insmod)
-{
-	int ret = 0;
-	int flags = 0;
-	int ip_set = 0;
-	struct status_info status_info;
-	fp = -1;
-
-	if (!test_insmod)
-	{
-		system("insmod atbm6041_wifi_sdio.ko");
-	}
-
-	fp = open("/dev/atbm_ioctl", O_RDWR);
-	if (fp < 0)
-	{
-		printf("open /dev/atbm_ioctl fail.\n");
-		return -1;
-	}
-	
-	is_insmod_driver = 1;
-	driver_can_rmmod = 0;
-
-	fcntl(fp, F_SETOWN, getpid());
-	flags = fcntl(fp, F_GETFL); 
-	fcntl(fp, F_SETFL, flags | FASYNC);
-
-	memset(&status_info, 0, sizeof(struct status_info));
-	ret = ioctl(fp, ATBM_STATUS, (unsigned int)(&status_info));
-	if (ret)
-	{
-		printf("get initial wifi status fail.\n");
-		return -1;
-	}
-
-	memcpy(&status.event, &status_info.con_event, sizeof(status.event));
-	wifi_mode = status_info.wifimode;
-	printf("[WIFI_MODE] %s\n", wifi_mode?"AP":"STA");
-
-	if (wifi_mode)
-	{
-		ip_set = 1;
-	}
-	else
-	{
-		if (status_info.bconnect)
-		{
-			status.is_connected = 1;
-			ip_set = 1;
-			printf("CTRL-EVENT-STATE-CONNECTED - Connection to ");
-			MAC_printf(status.event.bssid);
-			printf(" completed\n");
-		}
-	}
-#ifndef CONFIG_ATBM_SDIO_ATCMD
-	if (ip_set)
-	{
-		if (ip_set_auto)
-		{
-			char cmd[30];
-			struct in_addr ip_addr;
-
-			ip_addr.s_addr = status.event.ipaddr;
-			sprintf(cmd, "ifconfig wlan0 %s", inet_ntoa(ip_addr));
-			system(cmd);
-			system("ifconfig wlan0 up");
-			#ifdef DEMO_TCP_SEND
-			connect_flag = 1;
-			sem_post(&sem_tcp_sync);
-			#endif
-		}
-	}
-#endif
-
-	driver_switch = 1;
-	return 0;
-}
-
-int rmmod_driver(void)
-{
-	#ifdef DEMO_TCP_SEND
-	connect_flag = 0;
-	#endif
-#ifndef CONFIG_ATBM_SDIO_ATCMD
-	system("ifconfig wlan0 down");
-#endif
-	close(fp);
-	fp = -1;
-	system("rmmod atbm6041_wifi_sdio.ko");
-	is_insmod_driver = 0;
-	driver_can_rmmod = 0;
-	return 0;
-}
-
-int enable_driver(int on)
-{
-	if (is_insmod_driver == on)
-	{
-		return 0;
-	}
-
-	if (on)
-	{
-		return insmod_driver(0);
-	}
-	else
-	{
-		return rmmod_driver();
-	}
 }
 
 void *get_power_status_func(void *arg)
@@ -2891,26 +2898,26 @@ void *get_command_func(void *arg)
 	if (socket_fd <= 0)
 	{
 		printf("open socket err\n");
-		return;
+		return NULL;
 	}
 
 	unlink(SER_SOCKET_PATH);
 
-	memset(&ser_un, 0, sizeof(ser_un));  
-    ser_un.sun_family = AF_UNIX;  
+	memset(&ser_un, 0, sizeof(ser_un));
+    ser_un.sun_family = AF_UNIX;
 	strcpy(ser_un.sun_path, SER_SOCKET_PATH);
     ret = bind(socket_fd, (struct sockaddr *)&ser_un, sizeof(struct sockaddr_un));
     if (ret < 0)
 	{
-		printf("bind err\n"); 
-	   return;
-    }  
+		printf("bind err %s %s\n", SER_SOCKET_PATH, strerror(errno));
+	   return NULL;
+    }
 
 	ret = listen(socket_fd, 5);
-    if (ret < 0) 
-	{  
-        printf("listen err\n"); 
-	   return;          
+    if (ret < 0)
+	{
+        printf("listen err\n");
+	   return NULL;
     }
 
 	while (1)
@@ -2930,7 +2937,7 @@ void *get_command_func(void *arg)
 				break;
 			}
 		}
-		
+
 		write(connect_fd, recall, strlen(recall)+1);
 		close(connect_fd);
 		printf("cmd_line: %s\n", cmd_line);
@@ -2941,7 +2948,6 @@ void *get_command_func(void *arg)
 			break;
 		}
 	}
-
 	close(socket_fd);
 }
 
@@ -2953,7 +2959,7 @@ void *tcp_detect_func(void *arg)
 	int connect_server = 0;
 	char data[]="IPC DATA";
 	unsigned short tcp_port = 10010;
-	struct sockaddr_in ser_addr;	
+	struct sockaddr_in ser_addr;
 
 	memset(&ser_addr,0,sizeof(ser_addr));
 	ser_addr.sin_family=AF_INET;
@@ -2966,7 +2972,7 @@ void *tcp_detect_func(void *arg)
 		if (fd < 0)
 		{
 			printf("tcp socket create fail\n");
-			return;
+			return NULL;
 		}
 
 		sem_wait(&sem_tcp_sync);
@@ -2977,12 +2983,12 @@ void *tcp_detect_func(void *arg)
 		}
 		if (connect_flag)
 		{
-			struct tcp_filter_info tcp_filter_get; 
+			struct tcp_filter_info tcp_filter_get;
 			ret = ioctl(fp, ATBM_GET_FILTER, (unsigned int)(&tcp_filter_get));
 			if (ret)
 			{
 				printf("get filter info fail\n");
-				return;
+				return NULL;
 			}
 			tcp_filter_get.src_tcpport[tcp_filter_get.src_cnt++] = htons(tcp_port);
 			tcp_filter_get.des_tcpport[tcp_filter_get.des_cnt++] = htons(tcp_port);
@@ -2990,7 +2996,7 @@ void *tcp_detect_func(void *arg)
 			if (ret)
 			{
 				printf("update filter info fail\n");
-				return;
+				return NULL;
 			}
 
 			while (connect_flag)
@@ -3049,6 +3055,8 @@ void ioctl_msg_func(int sig_num)
 {
 	int len = 0;
 
+	printf(">> --- %s  called  %d\n",__FUNCTION__,__LINE__);
+
 	sem_wait(&sem_status);
 	while (1)
 	{
@@ -3077,7 +3085,7 @@ void ioctl_msg_func(int sig_num)
 						printf(" completed\n");
 					}
 					printf("ip addr:%s\n", inet_ntoa(ip_addr));
-#ifndef CONFIG_ATBM_SDIO_ATCMD				
+#ifndef CONFIG_ATBM_SDIO_ATCMD
 					if (ip_set_auto)
 					{
 						char cmd[30];
@@ -3187,7 +3195,7 @@ void ioctl_msg_func(int sig_num)
 			}
 			else if (status.type == 6)
 			{
-				printf("Received customer private event...\n");
+				printf("Received customer private event (%s)...\n", status.event_buffer);
 			}
 #ifdef CONFIG_ATBM_SDIO_ATCMD
 			else if (status.type == 7)
@@ -3204,6 +3212,7 @@ void ioctl_msg_func(int sig_num)
 		}
 	}
 	sem_post(&sem_status);
+	printf(">> --- %s  exit  %d\n",__FUNCTION__,__LINE__);
 }
 
 #ifdef CONFIG_ATBM_SDIO_ATCMD
@@ -3225,7 +3234,7 @@ int sdio_at_cmd(int fp, int argc, char *argv[])
 	memset(&at_cmd, 0, sizeof(at_cmd));
 	at_cmd.len = strlen(argv[0]);
 	memcpy(at_cmd.cmd, argv[0], at_cmd.len);
-	return ioctl(fp, ATBM_AT_CMD_DIRECT, (unsigned int)(&at_cmd));	
+	return ioctl(fp, ATBM_AT_CMD_DIRECT, (unsigned int)(&at_cmd));
 }
 
 int at_cmd_direct(int fp, char *arg)
@@ -3235,7 +3244,7 @@ int at_cmd_direct(int fp, char *arg)
 	memset(&at_cmd, 0, sizeof(at_cmd));
 	at_cmd.len = strlen(arg);
 	memcpy(at_cmd.cmd, arg, at_cmd.len);
-	return ioctl(fp, ATBM_AT_CMD_DIRECT, (unsigned int)(&at_cmd));	
+	return ioctl(fp, ATBM_AT_CMD_DIRECT, (unsigned int)(&at_cmd));
 }
 
 #endif
@@ -3250,7 +3259,7 @@ int main(int argc, char *argv[])
 	pthread_t tcp_tid;
 	#endif
 	is_insmod_driver = 0;
-	
+
 	memset(server_ipaddr, 0, sizeof(server_ipaddr));
 	strcpy(server_ipaddr, "192.168.3.147");
 
@@ -3269,7 +3278,7 @@ int main(int argc, char *argv[])
 	memset(&ipc_data_set, 0, sizeof(ipc_data_set));
 	memset(&fast_cfg_recv_set, 0, sizeof(fast_cfg_recv_set));
 	memset(&fast_cfg_send_set, 0, sizeof(fast_cfg_send_set));
-	
+
 	ssid_set = 0;
 	key_set = 0;
 	key_id_set = 0;

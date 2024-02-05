@@ -92,6 +92,8 @@ static int atbm_ioctl_notify_add(u8 type, u8 is_connected, u8 driver_mode, struc
 {
 	int first;
 	struct atbm_status_event *event = NULL;
+	atbm_printk_err("%s enter\n", __func__);
+
 
 	if (s_cur_status_list_cnt >= MAX_STATUS_LSIT_CNT)
 	{
@@ -103,7 +105,7 @@ static int atbm_ioctl_notify_add(u8 type, u8 is_connected, u8 driver_mode, struc
 		atbm_printk_err("%s: event_buffer is full.\n", __func__);
 		return -1;
 	}
-	
+
 #ifdef CONFIG_ATBM_SDIO_ATCMD
 	if ((type == 7) && (event_buffer == NULL))
 	{
@@ -137,6 +139,8 @@ static int atbm_ioctl_notify_add(u8 type, u8 is_connected, u8 driver_mode, struc
 	list_add_tail(&event->link, &s_status_head);
 	s_cur_status_list_cnt++;
 	spin_unlock_bh(&s_status_queue_lock);
+
+	atbm_printk_err("%s need async notify usr layer\n", __func__);
 	if (first)
 	{
 		return 1;//need async notify usr layer
@@ -152,7 +156,7 @@ static int atbm_ioctl_notify_add(u8 type, u8 is_connected, u8 driver_mode, struc
 void atbm_ioctl_connect_async(struct HostConnectEvent *event, char is_connected)
 {
 	#ifdef LINUX_OS
-	int ret;
+	int ret = 0;
 
 	if (is_connected)
 	{
@@ -170,6 +174,7 @@ void atbm_ioctl_connect_async(struct HostConnectEvent *event, char is_connected)
 
 	if (ret > 0)
 	{
+		DEBUG_PRINTF("called\n");
 		kill_fasync (&connect_async, SIGIO, POLL_IN);
 	}
 	#endif
@@ -178,9 +183,12 @@ void atbm_ioctl_connect_async(struct HostConnectEvent *event, char is_connected)
 //notify driver need to insmod&rmmod
 void atbm_ioctl_driver_async(int insmod)
 {
+	DEBUG_PRINTF("called\n");
+
 	#ifdef LINUX_OS
 	if (atbm_ioctl_notify_add(1, 0, insmod, NULL, NULL) > 0)
 	{
+		DEBUG_PRINTF("called\n");
 		kill_fasync (&connect_async, SIGIO, POLL_IN);
 	}
 	#endif
@@ -189,9 +197,13 @@ void atbm_ioctl_driver_async(int insmod)
 //notify wakeup host reason
 void atbm_ioctl_wakeup_async(int reason)
 {
+
+	DEBUG_PRINTF("called\n");
+
 	#ifdef LINUX_OS
 	if (atbm_ioctl_notify_add(3, 0, reason, NULL, NULL) > 0)
 	{
+		DEBUG_PRINTF("called\n");
 		kill_fasync (&connect_async, SIGIO, POLL_IN);
 	}
 	#endif
@@ -200,9 +212,12 @@ void atbm_ioctl_wakeup_async(int reason)
 //notify network disconnect reason
 void atbm_ioctl_disconn_async(int reason)
 {
+
+	DEBUG_PRINTF("called\n");
 	#ifdef LINUX_OS
 	if (atbm_ioctl_notify_add(4, 0, reason, NULL, NULL) > 0)
 	{
+		DEBUG_PRINTF("called\n");
 		kill_fasync (&connect_async, SIGIO, POLL_IN);
 	}
 	#endif
@@ -211,9 +226,13 @@ void atbm_ioctl_disconn_async(int reason)
 //notify network connect error reason
 void atbm_ioctl_conn_err_async(int reason)
 {
+
+	DEBUG_PRINTF("called\n");
+
 	#ifdef LINUX_OS
 	if (atbm_ioctl_notify_add(5, 0, reason, NULL, NULL) > 0)
 	{
+		DEBUG_PRINTF("called\n");
 		kill_fasync (&connect_async, SIGIO, POLL_IN);
 	}
 	#endif
@@ -222,9 +241,13 @@ void atbm_ioctl_conn_err_async(int reason)
 //upload customer private event info
 void atbm_ioctl_customer_private_event_async(u8 *event_buffer)
 {
+
+	DEBUG_PRINTF("called\n");
+
 	#ifdef LINUX_OS
 	if (atbm_ioctl_notify_add(6, 0, 0, NULL, event_buffer) > 0)
 	{
+		DEBUG_PRINTF("called\n");
 		kill_fasync (&connect_async, SIGIO, POLL_IN);
 	}
 	#endif
@@ -233,9 +256,13 @@ void atbm_ioctl_customer_private_event_async(u8 *event_buffer)
 #ifdef CONFIG_ATBM_SDIO_ATCMD
 void atbm_ioctl_atcmd_event_async(u8 *event_buffer)
 {
+
+	DEBUG_PRINTF("called\n");
+
 	#ifdef LINUX_OS
 	if (atbm_ioctl_notify_add(7, 0, 0, NULL, event_buffer) > 0)
 	{
+		DEBUG_PRINTF("called\n");
 		kill_fasync (&connect_async, SIGIO, POLL_IN);
 	}
 	#endif
@@ -337,7 +364,7 @@ err:
 int atbm_wsm_get_status(struct atbm_common *hw_priv, unsigned int buff)
 {
 	int ret = 0;
-	struct	wsm_sdio_getconfig_cnf cnf;	
+	struct	wsm_sdio_getconfig_cnf cnf;
 
 	memset(&cnf, 0, sizeof(cnf));
 	ret = wsm_get_config(hw_priv, &cnf, sizeof(cnf));
@@ -360,7 +387,7 @@ int atbm_wsm_get_status(struct atbm_common *hw_priv, unsigned int buff)
 int atbm_wsm_tcp_filter(struct atbm_common *hw_priv, unsigned int data, int set_flag)
 {
 	int ret = 0;
-	struct	wsm_tcp_filter_req req;	
+	struct	wsm_tcp_filter_req req;
 
 	if (0 == data)
 	{
@@ -437,7 +464,7 @@ void scan_complete_check(unsigned long data)
 		timer_info.scan_ok = 1;
 		queue_work(timer_info.workqueue, &timer_info.work);
 		return;
-	} 
+	}
 
 	queue_work(timer_info.workqueue, &timer_info.work);
 	atbm_mod_timer(&timer_info.timer, jiffies+msecs_to_jiffies(500));
@@ -489,7 +516,7 @@ int atbm_wsm_get_scan_state(struct atbm_common *hw_priv, unsigned int data)
 		ret = -1;
 		goto err;
 	}
-	
+
 err:
 	return ret;
 }
@@ -534,7 +561,7 @@ int atbm_wsm_get_scan_info(struct atbm_common *hw_priv, unsigned int data)
 		ret = -1;
 		goto err;
 	}
-	
+
 err:
 	return ret;
 }
@@ -567,14 +594,14 @@ int atbm_wsm_set_wifi_mode(struct atbm_common *hw_priv, char is_ap)
 	}
 	else {
 		vif->type = NL80211_IFTYPE_STATION;
-	}	
+	}
 	atbm_printk_err("%s:[%d][%d][%p]\n",__func__,vif->type,is_ap,vif);
 	ret = wsm_set_wifimode(hw_priv, &mode_req, sizeof(mode_req));
 	if (ret)
 	{
 		atbm_printk_err("%s: wsm_set_wifimode err.\n", __func__);
 	}
-	
+
 err:
 	return ret;
 }
@@ -608,7 +635,7 @@ int atbm_wsm_set_ap_cfg(struct atbm_common *hw_priv, unsigned int data)
 		vif->ap_info.group_key.key_type = IEEE80211_ENC_TYPE;
 		vif->ap_info.key.key_type = IEEE80211_ENC_TYPE;
 	}
-	else if((ap_cfg_req.join_parameter.keyMgmt == KEY_MGMT_WEP) || 
+	else if((ap_cfg_req.join_parameter.keyMgmt == KEY_MGMT_WEP) ||
 		    (ap_cfg_req.join_parameter.keyMgmt == KEY_MGMT_WEP_SHARED)){
 		atbm_printk_err("%s:wep\n",__func__);
 		vif->ap_info.group_key.key_type = IEEE80211_ENC_WEP;
@@ -671,7 +698,7 @@ int atbm_wsm_set_wifi_channel(struct atbm_common *hw_priv, char channel)
 	{
 		atbm_printk_err("%s: wsm_set_wifichannel err.\n", __func__);
 	}
-	
+
 err:
 	return ret;
 }
@@ -696,7 +723,7 @@ int atbm_wsm_set_country(struct atbm_common *hw_priv, char country)
 	{
 		atbm_printk_err("%s: wsm_set_countryId err.\n", __func__);
 	}
-	
+
 err:
 	return ret;
 }
@@ -727,7 +754,7 @@ int atbm_wsm_get_country(struct atbm_common *hw_priv, unsigned int data)
 		ret = -1;
 		goto err;
 	}
-	
+
 err:
 	return ret;
 }
@@ -758,7 +785,7 @@ int atbm_wsm_get_sta_list(struct atbm_common *hw_priv, unsigned int data)
 		ret = -1;
 		goto err;
 	}
-	
+
 err:
 	return ret;
 }
@@ -1046,7 +1073,7 @@ int atbm_wsm_get_version(struct atbm_common *hw_priv, unsigned int data)
 		ret = -1;
 		goto err;
 	}
-	
+
 err:
 	return ret;
 }
@@ -1131,7 +1158,7 @@ int atbm_wsm_set_listen_itvl(struct atbm_common *hw_priv, char interval)
 	{
 		atbm_printk_err("%s: wsm_set_listen_itvl err.\n", __func__);
 	}
-	
+
 err:
 	return ret;
 }
@@ -1234,7 +1261,7 @@ int atbm_wsm_fw_sleep(struct atbm_common *hw_priv)
 		hw_priv->close_driver = 1;
 		if(hw_priv->sbus_ops->sbus_xmit_func_deinit)
 			hw_priv->sbus_ops->sbus_xmit_func_deinit(hw_priv->sbus_priv);
-		if(hw_priv->sbus_ops->sbus_rev_func_deinit)	
+		if(hw_priv->sbus_ops->sbus_rev_func_deinit)
 			hw_priv->sbus_ops->sbus_rev_func_deinit(hw_priv->sbus_priv);
 		printk("atbm_wsm_fw_sleep ok! new rmmod version...\n");
 	}
@@ -1401,7 +1428,7 @@ int atbm_wsm_is_tx_buffer_empty(struct atbm_common *hw_priv, unsigned long buff)
 
 	if (atbm_skb_queue_empty(&hw_priv->tx_frame_queue))
 	{
-		is_empty = 1;	
+		is_empty = 1;
 	}
 
 	if (0 != copy_to_user((char *)buff, &is_empty, sizeof(char)))
@@ -1935,7 +1962,7 @@ int atbm_at_cmd_direct_send(struct atbm_common *hw_priv, unsigned int data)
 	if((hw_priv->at_cmd_put - hw_priv->at_cmd_get) >= ATBM_AT_CMD_MAX_SW_CACHE){
 		atbm_printk_err("%s: atcmd software cache full.\n", __func__);
 		ret = -1;
-		goto err;		
+		goto err;
 	}
 
 	spin_lock_bh(&hw_priv->wsm_cmd.lock);
@@ -1949,10 +1976,10 @@ int atbm_at_cmd_direct_send(struct atbm_common *hw_priv, unsigned int data)
 	memcpy(hw_priv->at_cmd_buf[put]+sizeof(struct wsm_hdr_tx), cmd_req.cmd, cmd_req.len);
 	hw_priv->at_cmd_put ++;
 	spin_unlock_bh(&hw_priv->wsm_cmd.lock);
-	
+
 	atbm_bh_wakeup(hw_priv);
 err:
-	return ret;	
+	return ret;
 }
 #endif
 
@@ -2279,7 +2306,7 @@ static ssize_t atbm_ioctl_read(struct file *filp, char __user *buff, size_t len,
 		ret = -1;
 	}
 	spin_unlock_bh(&s_status_queue_lock);
-	
+
 	if (ret)
 	{
 		return -1;

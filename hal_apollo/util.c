@@ -119,19 +119,19 @@ void atbm_monitor_pc(struct atbm_common *hw_priv)
 														testreg1[5],
 														testreg1[6]);
 
-	atbm_printk_err( "%s:0x16101028(%x)\n",__func__,val28);	
+	atbm_printk_err( "%s:0x16101028(%x)\n",__func__,val28);
 	atbm_printk_err( "%s:0x16101020(%x)\n",__func__,val20);
-	
+
 }
 void atbm_xmit_linearize(struct atbm_common	*hw_priv,
 	 struct wsm_tx *wsm,char *xmit,int xmit_len,struct sk_buff *skb)
 {
 	while((skb != NULL)&&(skb_is_nonlinear(skb))){
-		
+
 		int sg_len = 0;
 		int sg = 0;
 
-		BUG_ON((void *)skb->data != (void *)wsm);		
+		BUG_ON((void *)skb->data != (void *)wsm);
 		printk_once(KERN_ERR "sg process\n");
 
 		memcpy(xmit,skb->data,skb_headlen(skb));
@@ -140,23 +140,26 @@ void atbm_xmit_linearize(struct atbm_common	*hw_priv,
 		xmit += sg_len;
 #ifdef LINUX_OS
 		for (sg = 0; sg < skb_shinfo(skb)->nr_frags; sg++){
-			
+
 			skb_frag_t *frag = &skb_shinfo(skb)->frags[sg];
-#if (LINUX_VERSION_CODE < KERNEL_VERSION(3, 2, 0))			
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(3, 2, 0))
 			memcpy(xmit,page_address(frag->page) + frag->page_offset,frag->size);
 #else
-			memcpy(xmit,page_address(frag->page.p) + frag->page_offset,frag->size);
+			//memcpy(xmit,page_address(frag->page.p) + frag->page_offset,frag->size);
+			memcpy(xmit, skb_frag_page(frag) + skb_frag_off(frag), skb_frag_size(frag));
 #endif
-			xmit += frag->size;
-			sg_len += frag->size;
+			//xmit += frag->size;
+			//sg_len += frag->size;
+			xmit += skb_frag_size(frag);
+			sg_len += skb_frag_size(frag);
 		}
 #endif
 		atbm_dev_kfree_skb(skb);
-		return;		
+		return;
 	}
 
 	memcpy(xmit,wsm,xmit_len);
-	
+
 	if(skb)
 		atbm_dev_kfree_skb(skb);
 }
@@ -492,6 +495,10 @@ u32 atbm_ieee802_11_parse_elems_crc(u8 *start, size_t len,
 		case ATBM_WLAN_EID_SECONDARY_CH_OFFSET:
 			elems->secondary_ch_elem=pos;
 			elems->secondary_ch_elem_len=elen;
+#if (LINUX_VERSION_CODE > KERNEL_VERSION(5, 10, 60))
+			fallthrough;
+#endif
+
 		case ATBM_WLAN_EID_PRIVATE:
 			elems->atbm_special = pos;
 			elems->atbm_special_len = elen;

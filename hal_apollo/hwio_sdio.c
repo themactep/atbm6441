@@ -20,6 +20,7 @@
 #ifdef LINUX_OS
 #include <linux/types.h>
 #include <linux/module.h>
+#include <linux/kernel.h>
 #endif
 
 #include "apollo.h"
@@ -30,10 +31,10 @@
 #include "wsm.h"
  /*config dcxo value*/
  char *dcxo_value="default";
- 
+
  module_param(dcxo_value,charp,0644);
  MODULE_PARM_DESC(dcxo_value,"Need to config dcxo reg");
- 
+
  /*config dpll value*/
  char *dpll_value="default";
  module_param(dpll_value,charp,0644);
@@ -324,7 +325,7 @@ int atbm_data_read_unlock(struct atbm_common *hw_priv, void *buf, u32 buf_len)
 {
 	int ret = -1, retry = 1;
 	int buf_id_rx = hw_priv->buf_id_rx;
-	
+
 	while (retry <= MAX_RETRY) {
 		ret = __atbm_data_read(hw_priv,
 				ATBM_HIFREG_IN_OUT_QUEUE_REG_ID, buf,
@@ -566,7 +567,7 @@ int atbm_indirect_read_unlock(struct atbm_common *hw_priv, u32 addr, void *buf,
 		goto out;
 	}
 	/* Write address */
-	
+
 	while(retry<=3){
 		ret = __atbm_reg_write_32(hw_priv, ATBM_HIFREG_SRAM_BASE_ADDR_REG_ID,
 					    addr);
@@ -685,7 +686,7 @@ out:
 int atbm_fw_write(struct atbm_common *priv, u32 addr, const void *buf,
                         u32 buf_len)
 {
-	return atbm_ahb_write(priv,  addr, buf, buf_len);		
+	return atbm_ahb_write(priv,  addr, buf, buf_len);
 }
 
 
@@ -1009,10 +1010,10 @@ int atbm_before_load_firmware(struct atbm_common *hw_priv)
 	int major_revision;
 
 	u32 config_reg;
-	
+
 	FUNC_ENTER();
 
-	BUG_ON(!hw_priv);	
+	BUG_ON(!hw_priv);
 	#if (ATBM_VOL_L == 10)
 	#pragma message ("1.0v")
 	atbm_printk_init("+++++++++++++++++1.0v+++++++++++++++++++\n");
@@ -1083,7 +1084,7 @@ retry:
 			if (ret<0){
 				atbm_dbg(ATBM_APOLLO_DBG_MSG, "atbm_system_done error.\n");
 			}
-#else		
+#else
 			atbm_printk_err("%s:do not set config to smu\n",__func__);
 #endif
 
@@ -1133,8 +1134,8 @@ retry:
 		goto out;
 	}
 
-		
-	
+
+
 	atbm_reg_read_32(hw_priv, ATBM_HIFREG_CONFIG_REG_ID, &config_reg);
 	if(config_reg & ATBM_HIFREG_PS_SYNC_SDIO_FLAG)
 	{
@@ -1201,7 +1202,7 @@ out:
 		ret = atbm_direct_read_reg_32(hw_priv,0x16100074,&reset_reg);
 		atbm_printk_err("%s:read [0x16100074]=[%x],ret(%d)\n",__func__,reset_reg,ret);
 		reset_reg |= BIT(0);
-		ret = atbm_direct_write_reg_32(hw_priv,0x16100074,reset_reg);		
+		ret = atbm_direct_write_reg_32(hw_priv,0x16100074,reset_reg);
 		atbm_printk_err("%s:write [0x16100074]=[%x],ret(%d)\n",__func__,reset_reg,ret);
 		mdelay(100);
 	}
@@ -1244,7 +1245,10 @@ int atbm_after_load_firmware(struct atbm_common *hw_priv)
 				"%s: 0x1610102c: can't write register.\n", __func__);
 			goto out;
 		}
-		while(1)
+
+		//max 3s
+		unsigned long timeout = jiffies + msecs_to_jiffies(3 * 1000);
+		while (!time_after(jiffies, timeout))
 		{
 			ret=atbm_ahb_read_32(hw_priv,0x1610102c,&val32);
 			if(ret<0){
@@ -1254,7 +1258,8 @@ int atbm_after_load_firmware(struct atbm_common *hw_priv)
 			}
 			if (val32 & BIT(16))
 				break;
-			msleep(1);
+
+			schedule_timeout_interruptible(msecs_to_jiffies(1));
 		}
 #endif
 		/* If device is CW1200 the IRQ enable/disable bits
@@ -1285,10 +1290,10 @@ int atbm_after_load_firmware(struct atbm_common *hw_priv)
 			goto out;
 		}
 #endif
-		
+
 		//hare sdio + iot,let lmac know host initial done .add by wp
 		//ret = atbm_ahb_read_32(hw_priv, SDIO_INIT_DONE_REG, &val32);
-		
+
 		//atbm_printk_init("SDIO_INIT_DONE_REG %x %x.\n",SDIO_INIT_DONE_REG,val32);
 		//atbm_ahb_write_32(hw_priv,SDIO_INIT_DONE_REG,val32&(~BIT(11)));
 
@@ -1310,9 +1315,9 @@ int atbm_after_load_firmware(struct atbm_common *hw_priv)
 		}
 		/* Unless we read the CONFIG Register we are
 		 * not able to get an interrupt */
-		mdelay(10);
+		mdelay(1);
 		atbm_reg_read_32(hw_priv, ATBM_HIFREG_CONFIG_REG_ID, &val32);
-		
+
 		//hare sdio + iot,let lmac know host initial done .add by wp
 		/* Set wakeup bit in device */
 		ret = atbm_reg_read_16(hw_priv, ATBM_HIFREG_CONTROL_REG_ID, &val16);
@@ -1322,7 +1327,7 @@ int atbm_after_load_firmware(struct atbm_common *hw_priv)
 				"control register.\n", __func__);
 			goto out;
 		}
-		
+
 		ret = atbm_reg_write_16(hw_priv, ATBM_HIFREG_CONTROL_REG_ID, val16 | ATBM_HIFREG_CONT_WUP_BIT);
 		if (ret < 0) {
 			atbm_dbg(ATBM_APOLLO_DBG_ERROR,

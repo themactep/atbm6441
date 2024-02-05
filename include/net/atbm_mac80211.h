@@ -26,7 +26,7 @@
 #define IEEE80211_BAND_2GHZ NL80211_BAND_2GHZ
 #define IEEE80211_BAND_5GHZ NL80211_BAND_5GHZ
 #define IEEE80211_NUM_BANDS (NL80211_BAND_5GHZ+1)
-#define ieee80211_band nl80211_band 
+#define ieee80211_band nl80211_band
 #define atbm_notify_scan_done(__local,__scan_request,__abort) \
 do	{			\
 	__local->scan_info.aborted = __abort;		\
@@ -389,7 +389,7 @@ struct atbm_p2p_message {
 	u8 *operating_channel;
 	u8 *channel_list;
 	u8 channel_list_len;
-	
+
 	u8 *group_bssid;
 	u8 *invitation_flags;
 
@@ -1779,13 +1779,13 @@ static inline int ieee80211_p2p_action_check(u8* data,ssize_t data_len)
 	u8* p2p_data = data;
 	ssize_t p2p_data_len = data_len;
 	u32 oui_wfa = 0;
-	
+
 	if(p2p_data[0] != 9/*vendor spec*/)
 		RETURN_ERR;
 
 	if(p2p_data_len<3)
 		RETURN_ERR;
-	
+
 	p2p_data++;
 	p2p_data_len--;
 
@@ -1841,15 +1841,15 @@ static inline bool atbm_accsii_to_int(const char *pos,int len,int *res)
 
 	if((len == 0) || (len>10) || (len<0))
 		return false;
-	
+
 	neg   = pos[0] == '-'  ? true:false;
 	index = neg    == true ? 1:0;
 
 	if((neg==true)&&(len == 1))
 		return false;
-	
+
 	for(;index<len;index++){
-		
+
 		if((accsii[index] < '0') || (accsii[index] > '9')){
 			return false;
 		}
@@ -1868,7 +1868,7 @@ static inline bool atbm_accsii_to_int(const char *pos,int len,int *res)
 static inline void atbm_common_hash_list_init(struct hlist_head *hlist,u8 size)
 {
 	u8 index = 0;
-	
+
 	for(index = 0;index<size;index++){
 		INIT_HLIST_HEAD(&hlist[index]);
 	}
@@ -1903,7 +1903,7 @@ static inline u8 ieee80211_rssi_weight(s8 signal)
 		weight = 2;
 	else if(signal > -50)
 		weight = 4;
-	else 
+	else
 		weight = 0;
 
 	return weight;
@@ -1965,6 +1965,7 @@ extern u32 atbm_printk_mask;
 #define ATBM_TAG "[atbm_log]:"
 #define atbm_printk(_level,fmt,arg...) 	do {if(atbm_printk_mask&(_level)) printk(KERN_ERR ATBM_TAG fmt,##arg);}while(0)
 
+#define DEBUG_PRINTF(string,args...) printk(KERN_ERR "\033[35m""[%s]:(%d) "string"\033[0m",__FUNCTION__,__LINE__,##args)
 
 /*
 *atbm printk
@@ -2070,7 +2071,7 @@ static inline void atbm_setup_timer(struct atbm_timer_list *atbm_timer,
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0))
 	timer_setup(&atbm_timer->timer, atbm_timer_handle, 0);
 #else
-	
+
 	atbm_timer->timer.function = atbm_timer_handle;
 	atbm_timer->timer.data = (unsigned long)atbm_timer;
 	init_timer(&atbm_timer->timer);

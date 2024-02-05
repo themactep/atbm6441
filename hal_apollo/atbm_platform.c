@@ -114,8 +114,8 @@ u32 atbm_wlan_get_oob_irq(void)
 
 static int atbm_platform_power_ctrl(const struct atbm_platform_data *pdata,bool enabled)
 {
-	int ret = 0; 
-#ifndef USB_BUS	
+	int ret = 0;
+#ifndef USB_BUS
 	#if (ATBM_WIFI_PLATFORM == PLATFORM_XUNWEI) ||(ATBM_WIFI_PLATFORM == PLATFORM_FRIENDLY)
 	{
 #if (PROJ_TYPE==ARES_A)//for ARESA chip hw reset pin bug
@@ -148,10 +148,10 @@ static int atbm_platform_power_ctrl(const struct atbm_platform_data *pdata,bool 
 
 	#if (ATBM_WIFI_PLATFORM == PLATFORM_FRIENDLY)
 	{
-		
+
 	}
 	#endif
-#if (ATBM_WIFI_PLATFORM == PLATFORM_SUN6I_64)	
+#if (ATBM_WIFI_PLATFORM == PLATFORM_SUN6I_64)
 	//int wlan_bus_index = sunxi_wlan_get_bus_index();
 #if 0
 	if (gpio_request(354, "wlan_regon")!=0) {
@@ -196,7 +196,7 @@ extern void extern_wifi_set_enable(int is_on);
 		msleep(200);
 		atbm_printk_platform("atbm sdio extern_wifi_set_enable 0\n");
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(3, 14, 0))
-    	wifi_teardown_dt();
+		wifi_teardown_dt();
 #endif
 	}
 
@@ -204,7 +204,7 @@ extern void extern_wifi_set_enable(int is_on);
 
 #if (ATBM_WIFI_PLATFORM == 10)
 	mdelay(100);
-    rockchip_wifi_power(enabled);
+	rockchip_wifi_power(enabled);
 #endif
 
 #endif
@@ -263,10 +263,10 @@ static int atbm_platform_insert_crtl(const struct atbm_platform_data *pdata,bool
 			return wlan_bus_index;
 		if (enabled){
 			sunxi_mmc_rescan_card(wlan_bus_index);
-		}else{		
-	
+		}else{
+
 		}
-	
+
 		//oob_irq = sunxi_wlan_get_oob_irq();
 	}
 	#endif
@@ -307,7 +307,7 @@ int atbm_power_ctrl(const struct atbm_platform_data *pdata,bool enabled)
 
 }
 int atbm_insert_crtl(const struct atbm_platform_data *pdata,bool enabled)
-{	
+{
 	return atbm_platform_insert_crtl(pdata,enabled);
 }
 #ifdef SDIO_BUS
@@ -348,8 +348,8 @@ int atbm_plat_request_gpio_irq(const struct atbm_platform_data *pdata,struct sbu
 	if (WARN_ON(ret))
 		goto err;
 #else //IRQ_THREAD_REQ
-	
-	ret = request_irq(bgf_irq, (void *)atbm_gpio_irq,  
+
+	ret = request_irq(bgf_irq, (void *)atbm_gpio_irq,
 							IORESOURCE_IRQ | IORESOURCE_IRQ_HIGHEDGE | IORESOURCE_IRQ_SHAREABLE ,
 							"atbm_wlan_irq", self);
 	if (WARN_ON(ret))
@@ -374,7 +374,7 @@ int atbm_plat_request_gpio_irq(const struct atbm_platform_data *pdata,struct sbu
 		goto err;
 	}
 #else   //(ATBM_WIFI_PLATFORM == other)
-	
+
 	if (gpio_is_valid(pdata->irq_gpio)) {
 		ret = gpio_request(pdata->irq_gpio, "apollo wifi BGF EINT");
 		if (ret) {
@@ -395,7 +395,7 @@ int atbm_plat_request_gpio_irq(const struct atbm_platform_data *pdata,struct sbu
 	if (WARN_ON(ret))
 		goto err;
 #endif
-	
+
 
 	*atbm_bgf_irq = bgf_irq;
 
@@ -421,17 +421,20 @@ void atbm_plat_free_gpio_irq(const struct atbm_platform_data *pdata,struct sbus_
 	free_irq(atbm_bgf_irq,self);
 	gpio_free(pdata->irq_gpio);
 #endif
+
 	return ;
 }
 
 #endif  //CONFIG_ATBM_APOLLO_USE_GPIO_IRQ
 #endif
+
 struct atbm_platform_data platform_data = {
 #if (ATBM_WIFI_PLATFORM == 10)
 	.mmc_id       = "mmc1",
 #else
 	.mmc_id       = "mmc2",
 #endif
+
 	.clk_ctrl     = NULL,
 	.power_ctrl   = atbm_power_ctrl,
 	.insert_ctrl  = atbm_insert_crtl,

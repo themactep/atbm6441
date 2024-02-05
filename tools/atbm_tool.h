@@ -19,7 +19,7 @@
 
 #define MAX_NUM_LINK_AP          4
 
-#define SER_SOCKET_PATH          "server_socket"
+#define SER_SOCKET_PATH          "/tmp/server_socket"
 
 #ifdef CONFIG_ATBM_SDIO_ATCMD
 #define MAX_SDIO_EVENT_BUFFER_LEN 1500
@@ -117,7 +117,7 @@ struct bss_info{
 
 	struct cfg80211_rate rate;
 
-	void *rc_priv;	
+	void *rc_priv;
 }__packed;
 
 struct HostConnectEvent{
@@ -125,7 +125,7 @@ struct HostConnectEvent{
 	u8 ssidlen;
 	u8 bssid[6];
 	u8 crypto_pairwise;
-	
+
 	u8 crypto_group;
 	u8 keymgmt;
 	u8 bgnMode;//11B bit0,11G bit 1; 11n bit2
@@ -152,7 +152,7 @@ struct status_info{
 	u32 NumOfHwXmitedAddr;
 	u32 firmwareVersion;
 	u32 firmwareCap;
-	
+
 	struct HostConnectEvent con_event;
 	struct bss_info bss;
 }__packed;
@@ -203,6 +203,7 @@ struct scan_result_info{
 	   b40M:1,
 	   encrypt:1;
 	s8 rssi;
+	short reserved[2];
 };
 
 struct scan_result{
@@ -385,7 +386,7 @@ struct check_alive_req{
 	u32 status;
 	u32 alive_notify;//host to 6441--1212, 6441 to host--2121
 	u32 period; //unit s
-	u32 tmo_cnt;	
+	u32 tmo_cnt;
 };
 
 struct direct_trans_buffer_req{

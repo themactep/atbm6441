@@ -6,7 +6,7 @@
 -include .config
 ############################################################################
 #
-#	The Follow Code Of The Makefile Should Not Be Changed 
+#	The Follow Code Of The Makefile Should Not Be Changed
 #
 ############################################################################
 PWD:=$(shell pwd)
@@ -70,7 +70,7 @@ endif
 MULT_NAME=y
 ATBM_MAKEFILE_SUB=y
 #####################################################
-export 
+export
 ifeq ($(CONFIG_ATBM_APOLLO),)
 CONFIG_ATBM_APOLLO=m
 endif
@@ -100,16 +100,20 @@ ifeq ($(SPI_BUS),y)
 HIF:=spi
 endif
 
-HMAC_SVN_REV:=$(shell ((svnversion | grep -qv exported && echo -n 'Revision: ' && svnversion) || git svn info | sed -e 's/$$$$/M/' | grep '^Revision: ' ) | sed -e 's/^Revision: //'| sed -e 's/M//g')
+#HMAC_SVN_REV:=$(shell ((svnversion | grep -qv exported && echo -n 'Revision: ' && svnversion) || git svn info | sed -e 's/$$$$/M/' | grep '^Revision: ' ) | sed -e 's/^Revision: //'| sed -e 's/M//g')
+
+# HMAC_SVN_REV:=$(shell git rev-parse --short HEAD)
+HMAC_SVN_REV=1
 
 all: get_ver modules install
 get_ver:
 	@echo "**************************************"
+	# @echo "#define DRIVER_VER " 0x$(HMAC_SVN_REV) >hal_apollo/svn_version.h
 	@echo "#define DRIVER_VER " $(HMAC_SVN_REV) >hal_apollo/svn_version.h
 	@echo "svn version:" $(HMAC_SVN_REV)
 	@echo "**************************************"
 modules:get_ver clean
-	@echo "arch=$(ARCH)"						
+	@echo "arch=$(ARCH)"
 	$(MAKE) ARCH=$(ARCH) CROSS_COMPILE=$(CROSS_COMPILE) -C $(KDIR) M=$(shell pwd)  modules -j8
 #	$(MAKE) -C $(KDIR) M=$(PWD) modules
 
@@ -121,6 +125,8 @@ power_install:
 
 strip:
 	$(CROSS_COMPILE)strip $(WIFI_INSTALL_DIR)/$(MODULES_NAME).ko --strip-unneeded
+	$(CROSS_COMPILE)strip $(WIFI_INSTALL_DIR)/atbm_iot_supplicant --strip-unneeded
+	$(CROSS_COMPILE)strip $(WIFI_INSTALL_DIR)/atbm_iot_cli --strip-unneeded
 
 install:modules
 	mkdir -p $(WIFI_INSTALL_DIR)
@@ -132,8 +138,8 @@ uninstall:
 
 clean:
 	rm -rf hal_apollo/*.o
-	rm -rf hal_apollo/*.ko  
-	rm -rf modules.* Module.* 
+	rm -rf hal_apollo/*.ko
+	rm -rf modules.* Module.*
 	make -C $(KDIR) M=$(PWD) ARCH=$(ARCH) clean
 
 hal_clean:

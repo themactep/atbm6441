@@ -76,7 +76,7 @@ void ieee80211_send_auth(struct        atbm_vif *vif,
 	rcu_read_lock();
 	atbm_tx(vif, skb);
 	rcu_read_unlock();
-}	
+}
 static void ieee80211_send_assoc(struct atbm_vif *vif,
 				 u8 *bssid)
 {
@@ -88,7 +88,7 @@ static void ieee80211_send_assoc(struct atbm_vif *vif,
 	u32 rates = 0;
 	struct sta_info *sta;
 	static int atbm_rates[] = {10,20,55,110,60,90,120,180,240,360,480,540};
-	
+
 	struct ieee80211_sta_ht_cap ht_cap = {
 		.cap = IEEE80211_HT_CAP_GRN_FLD |
 			IEEE80211_HT_CAP_SUP_WIDTH_20_40 |
@@ -130,7 +130,7 @@ static void ieee80211_send_assoc(struct atbm_vif *vif,
 	capab = WLAN_CAPABILITY_ESS;
 	capab |= WLAN_CAPABILITY_SHORT_SLOT_TIME;
 	capab |= WLAN_CAPABILITY_SHORT_PREAMBLE;
-	
+
 	mgmt = (struct atbm_ieee80211_mgmt *) atbm_skb_put(skb, 24);
 	memset(mgmt, 0, 24);
 	memcpy(mgmt->da,bssid, ETH_ALEN);
@@ -188,7 +188,7 @@ static void ieee80211_send_assoc(struct atbm_vif *vif,
 
 	//case IEEE80211_SMPS_OFF:
 	capab = ht_cap.cap;
-		
+
 	/* reserve and fill IE */
 	*pos++ = ATBM_WLAN_EID_HT_CAPABILITY;
 	*pos++ = sizeof(struct ieee80211_ht_cap);
@@ -235,7 +235,7 @@ exit:
 	rcu_read_unlock();
 }
 
-static enum work_action 
+static enum work_action
 ieee80211_rx_mgmt_auth(struct atbm_vif *vif,struct atbm_ieee80211_mgmt *mgmt, size_t len)
 {
 	u16 auth_alg, auth_transaction, status_code;
@@ -287,12 +287,12 @@ ieee80211_rx_mgmt_assoc_resp(struct atbm_vif *vif,
 		if(sta){
 			set_sta_flag(sta, WLAN_STA_ASSOC);
 			set_sta_flag(sta,WLAN_STA_AUTHORIZED);
-			netif_carrier_on(vif->ndev);			
+			netif_carrier_on(vif->ndev);
 			atbm_printk_always( "%s: associated\n", __func__);
 		}
 		mutex_unlock(&vif->hw_priv->sta_mtx);
 	}
-	
+
 	return WORK_ACT_DONE;
 }
 static void ieee80211_sta_rx_queued_mgmt(struct atbm_vif *vif,
@@ -343,7 +343,7 @@ static void ieee80211_sta_rx_queued_mgmt(struct atbm_vif *vif,
 		WARN(1, "unexpected: %d", rma);
 	}
 	return;
-	
+
 }
 static void atbm_sta_key_config(struct ieee80211_key *key,u8 key_type)
 {
@@ -363,7 +363,7 @@ static void atbm_sta_key_config(struct ieee80211_key *key,u8 key_type)
 		key->key_type = IEEE80211_ENC_AES;
 		key->conf.iv_len = CCMP_HDR_LEN;
 		key->conf.icv_len = CCMP_MIC_LEN;
-		
+
 		break;
 	case ATBM_WLAN_CIPHER_SUITE_AES_CMAC:
 		key->key_type = IEEE80211_ENC_AES_CMAC;
@@ -407,7 +407,8 @@ void atbm_sta_connect_event(struct atbm_vif *vif,struct HostConnectEvent * hoste
 #if (ATBM_WIFI_PLATFORM == PLATFORM_ANKAI_RTOS)
 	atbm_set_ak_ip_info(vif->ndev, &hostevent->ipaddr, &hostevent->ipmask, &hostevent->gwaddr);
 #endif
-	netif_carrier_on(vif->ndev);			
+
+	netif_carrier_on(vif->ndev);
 	atbm_printk_always( "%s: associated\n", __func__);
 	vif->connect_success =1;
 	memcpy(vif->ap_info.bssid,hostevent->bssid,6);
@@ -438,7 +439,7 @@ void atbm_sta_disconnect_event(struct atbm_vif *vif,u8 *bssid)
 	clear_sta_flag(sta, WLAN_STA_ASSOC);
 	clear_sta_flag(sta,WLAN_STA_AUTHORIZED);
 	__sta_info_destroy(sta);
-	netif_carrier_off(vif->ndev);			
+	netif_carrier_off(vif->ndev);
 	atbm_printk_always( "%s: deauth\n", __func__);
 	vif->connect_success =0;
 	mutex_unlock(&vif->hw_priv->sta_mtx);
@@ -523,7 +524,7 @@ void atbm_sta_add_event(struct atbm_vif *vif, int link_id)
 	}
 
 	printk("%s  mac_addr:%pM\n", __func__, mac_addr);
-	
+
 	sta = sta_info_alloc(vif, mac_addr, GFP_KERNEL);
 	if (!sta){
 		ret = -ENOMEM;
@@ -551,6 +552,7 @@ void atbm_sta_add_event(struct atbm_vif *vif, int link_id)
 #if (ATBM_WIFI_PLATFORM == PLATFORM_ANKAI_RTOS)
 		//atbm_set_ak_ip_info(vif->ndev, &ipaddr, &ipmask, &gwaddr);
 #endif
+
 		netif_carrier_on(vif->ndev);
 		vif->connect_success = 1;
 	}
@@ -584,7 +586,7 @@ void atbm_sta_loss_event(struct atbm_vif *vif)
 	clear_sta_flag(sta,WLAN_STA_AUTHORIZED);
 	__sta_info_destroy(sta);
 	if (sta_cnt == 0){
-		netif_carrier_off(vif->ndev);			
+		netif_carrier_off(vif->ndev);
 		vif->connect_success = 0;
 	}
 	mutex_unlock(&vif->hw_priv->sta_mtx);
@@ -599,7 +601,7 @@ static void ieee80211_iface_work(struct work_struct *work)
 	struct atbm_common *hw_priv = vif->hw_priv;
 	struct sk_buff *skb;
 	struct sta_info *sta;
-	
+
 	if (!atomic_read(&vif->enabled)){
 		atbm_printk_err("%s:not runnning\n",__func__);
 		return;
@@ -657,7 +659,7 @@ static int atbm_open(struct net_device *dev)
 {
 	struct atbm_vif *sdata = atbm_dev_to_vif(dev);
 	atomic_set(&sdata->enabled,1);
-	
+
 	atbm_get_connectconfig(sdata->hw_priv);
 	atbm_set_tcp_port_filter(sdata->hw_priv);
 
@@ -679,7 +681,7 @@ static int atbm_open(struct net_device *dev)
 static int atbm_stop(struct net_device *dev)
 {
 	struct atbm_vif *vif = atbm_dev_to_vif(dev);
-	
+
 	atomic_set(&vif->enabled,0);
 	netif_tx_stop_all_queues(dev);
 	sta_info_flush(vif->hw_priv,vif);
@@ -691,7 +693,7 @@ static int atbm_stop(struct net_device *dev)
 	 * frames at this very time on another CPU.
 	 */
 	synchronize_rcu();
-	atbm_skb_queue_purge(&vif->skb_queue);	
+	atbm_skb_queue_purge(&vif->skb_queue);
 	atbm_printk_always("%s\n",__func__);
 	return 0;
 }
@@ -762,7 +764,7 @@ struct atbm_ip_hdr {
   u16 _chksum;
   /* source and destination IP addresses */
   struct atbm_ip_addr src;
-  struct atbm_ip_addr dest; 
+  struct atbm_ip_addr dest;
 }__packed;
 
 struct atbm_ieee8023_hdr {
@@ -960,7 +962,7 @@ netdev_tx_t atbm_subif_start_xmit(struct sk_buff *skb,
 	rcu_read_lock();
 	atbm_tx(vif,skb);
 	rcu_read_unlock();
-	
+
 	return NETDEV_TX_OK;
 fail:
 	atbm_control_dbg(ATBM_CONTROL_DEBUG_TX, "%s fail\n", __func__);
@@ -981,26 +983,27 @@ static int atbm_change_mtu(struct net_device *dev, int new_mtu)
 }
 
 #ifdef LINUX_OS
-static u16 atbm_netdev_select_queue(struct net_device *dev,
-                                         struct sk_buff *skb
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(3, 11, 0))
-					,
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 19, 0))
-                                        struct net_device *sb_dev,// void *accel_priv,
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 0))
+static u16 atbm_netdev_select_queue(struct net_device *dev, struct sk_buff *skb, struct net_device *sb_dev)
+#elif (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 19, 0))
+static u16 atbm_netdev_select_queue(struct net_device *dev, struct sk_buff *skb, struct net_device *sb_dev, select_queue_fallback_t fallback)
+#elif (LINUX_VERSION_CODE >=  KERNEL_VERSION(4, 9, 84))
+static u16 atbm_netdev_select_queue(struct net_device *dev, struct sk_buff *skb, void *accel_priv, select_queue_fallback_t fallback)
+#elif (LINUX_VERSION_CODE >=  KERNEL_VERSION(4, 4, 0))
+static u16 atbm_netdev_select_queue(struct net_device *dev, struct sk_buff *skb, struct net_device *sb_dev, select_queue_fallback_t fallback)
+#elif (LINUX_VERSION_CODE >= KERNEL_VERSION(3, 11, 0))
+static u16 atbm_netdev_select_queue(struct net_device *dev, struct sk_buff *skb, void *accel_priv, select_queue_fallback_t fallback)
 #else
-										void *accel_priv,
+static u16 atbm_netdev_select_queue(struct net_device *dev, struct sk_buff *skb)
 #endif
-                                         select_queue_fallback_t fallback
-#endif
-					 )
-
 {
 	return 0;
 }
+
 int atbm_netdev_ioctrl(struct net_device *dev, struct ifreq *rq, int cmd)
-{	
+{
 	int ret = 0;
-	
+
 	return ret;
 }
 #endif
@@ -1062,7 +1065,7 @@ int atbm_netdev_add(struct atbm_common *hw_priv,const char *name)
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(3,18,00))
 	ndev = alloc_netdev_mqs(sizeof(*vif),
 				name,NET_NAME_UNKNOWN, atbm_if_setup, 4, 1);
-#else	
+#else
 	ndev = alloc_netdev_mqs(sizeof(*vif),
 				name, atbm_if_setup, 4, 1);
 #endif
@@ -1094,7 +1097,7 @@ int atbm_netdev_add(struct atbm_common *hw_priv,const char *name)
 #endif
 
 	ret = dev_alloc_name(ndev, ndev->name);
-	
+
 	if(ret<0){
 		goto fail;
 	}
@@ -1154,9 +1157,9 @@ void atbm_remove_interfaces(struct atbm_common *hw_priv)
 
 	ASSERT_RTNL();
 	for(i = 0;i<ATBM_WIFI_MAX_VIFS;i++){
-		
+
 		vif = hw_priv->vif_list[i];
-		
+
 		if(vif == NULL)
 			continue;
 		rcu_assign_pointer(hw_priv->vif_list[i],NULL);
